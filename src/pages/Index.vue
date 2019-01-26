@@ -59,7 +59,7 @@
     <div class="row justify-center">
       <q-btn
         id="predict"
-        label="Predict"
+        :label="predictLabel"
         color="primary"
         @click='predict'
       />
@@ -202,7 +202,7 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
         return 0
       }
       if (seq[0] === '>') {
-        return seq.match(/\s*^>/mg).length
+        return seq.match(/^\s*>/mg).length
       }
       const lines = seq.split('\n').reduce((a, v) => {
         // remove empty lines
@@ -245,6 +245,63 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
       } else {
         return `${this.seqCount} sequences (${this.seqLength} aa total)`
       }
+    },
+    predictLabel () {
+      if (this.seqCount === 0) {
+        return 'Submit'
+      } else if (this.seqCount === 1) {
+        return `Submit 1 sequence`
+      } else {
+        return `Submit ${this.seqCount} sequences`
+      }
+    },
+    seqList () {
+      const list = []
+      // support 3 multi-sequence formats
+      // case 1 standard fasta
+      // case 2 no header single sequence
+      // case 2 no header multi sequence
+      const seq = this.seq.trim()
+      if (!seq) {
+        return list
+      }
+      if (seq[0] === '>') {
+        return seq.split('\n').reduce((a, v) => {
+          // remove empty lines
+          v = v.trim()
+          if (v[0] === '>') {
+            const s = {
+              header: v,
+              seq: ''
+            }
+            a.push(s)
+          } else {
+            a.slice(-1)[0].seq += v
+          }
+          return a
+        }, [])
+      }
+      const lines = seq.split('\n').reduce((a, v) => {
+        // remove empty lines
+        v = v.trim()
+        if (v) {
+          a.push(v)
+        }
+        return a
+      }, [])
+      if (lines.length === 1 || lines[0].length === lines[1].length) {
+        return [{
+          header: '>PROTEIN_00001',
+          seq: lines.join('')
+        }]
+      } else {
+        return lines.map((v, i) => {
+          return {
+            header: `>PROTEIN_${('' + (i + 1)).padStart(5, '0')}`,
+            seq: v
+          }
+        })
+      }
     }
   },
   methods: {
@@ -255,7 +312,7 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
         return
       }
       const { Pfam } = this.$FeathersVuex
-      const pfam = new Pfam({seq: this.seq})
+      const pfam = new Pfam(this.seqList[0])
       pfam.create()
     },
     fastaId (fasta) {
