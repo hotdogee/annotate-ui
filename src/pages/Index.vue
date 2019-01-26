@@ -6,10 +6,11 @@
     <div class="row justify-center">
       <div class="col-xs-12 col-sm-10 col-lg-8">
         <div class="row no-wrap q-field-floating">
-          <q-icon
-            name="keyboard_arrow_right"
-            color="secondary"
-            class="col-auto q-field-icon q-field-margin"
+          <q-btn
+            icon="keyboard_arrow_right"
+            color="primary"
+            flat round dense
+            id="example-btn"
           >
             <q-popover>
               <q-list link class="scroll" style="min-width: 100px; max-width: 90vw;">
@@ -17,29 +18,29 @@
                 <q-item-separator />
                 <q-list-header>Example Proteins</q-list-header>
                 <q-item
-                  v-for="seq in exampleSeqs"
-                  :key="seq"
+                  v-for="fasta in examples"
+                  :key="fasta"
                   v-close-overlay
-                  @click.native="notify"
+                  @click.native="loadSeq(fasta)"
                 >
                   <q-item-main
-                    :label="seqId(seq)"
+                    :label="fastaId(fasta)"
                     label-lines="1"
-                    :sublabel="seqDescription(seq)"
+                    :sublabel="fastaDescription(fasta)"
                     sublabel-lines="1"
                   />
                   <q-item-side right>
-                    <q-item-tile stamp>{{ seqLength(seq) }} aa</q-item-tile>
+                    <q-item-tile stamp>{{ fastaLength(fasta) }} aa</q-item-tile>
                   </q-item-side>
                 </q-item>
               </q-list>
             </q-popover>
-          </q-icon>
+          </q-btn>
           <q-field
             id="protein-field"
             class="col q-subheading"
             label=""
-            helper="Enter a single protein sequence with or without a header"
+            :helper="seqHelper"
             :error="$v.seq.$error"
             :error-label="errorMessages($v.seq)"
           >
@@ -78,6 +79,9 @@
 // .q-layout-page > .row + .row
 #predict
   margin-top 1.5rem
+#example-btn
+  margin-top 21px
+  margin-right 5px
 </style>
 
 <script>
@@ -113,12 +117,47 @@ RYFENGKDVNDWVGPPNDNGVTKEVTINPDTTCGNDWVCEHRWRQIRNMVNFRNVVDGQP
 FTNWYDNGSNQVAFGRGNRGFIVFNNDDWTFSLTLQTGLPAGTYCDVISGDKINGNCTGI
 KIYVSDDGKAHFSISNSAEDPFIAIHAESKL
 */
+/*
+>tr|A6XGL2|A6XGL2_HUMAN Insulin OS=Homo sapiens OX=9606 GN=INS PE=1 SV=1
+MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAED
+LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN
+ >sp|P62269|RS18_HUMAN 40S ribosomal protein S18 OS=Homo sapiens OX=9606 GN=RPS18 PE=1 SV=3
+MSLVIPEKFQHILRVLNTNIDGRRKIAFAITAIKGVGRRYAHVVLRKADIDLTKRAGELT
+EDEVERVITIMQNPRQYKIPDWFLNRQKDVKDGKYSQVLANGLDNKLREDLERLKKIRAH
+RGLRHFWGLRVRGQHTKTTGRRGRTVGVSKKK
+>sp|P04745|AMY1_H>UMAN Alpha-amylase 1 OS=Homo sapiens OX=9606 GN=AMY1A PE=1 SV=2
+MKLFWLLFTIGFCWAQYSSNTQQGRTSIVHLFEWRWVDIALECERYLAPKGFGGVQVSPP
+NENVAIHNPFRPWWERYQPVSYKLCTRSGNEDEFRNMVTRCNNVGVRIYVDAVINHMCGN
+AVSAGTSSTCGSYFNPGSRDFPAVPYSGWDFNDGKCKTGSGDIENYNDATQVRDCRLSGL
+LDLALGKDYVRSKIAE>YMNHLIDIGVAGFRIDASKHMWPGDIKAILDKLHNLNSNWFPEG
+SKPFIYQEVIDLGGEPIKSSDYFGNGRVTEFKYGAKLGTVIRKWNGEKMSYLKNWGEGWG
+FMPSDRALVFVDNHDNQRGHGAGGASILTFWDARLYKMAVGFMLAHPYGFTRVMSSYRWP
+RYFENGKDVNDWVGPPNDNGVTKEVTINPDTTCGNDWVCEHRWRQIRNMVNFRNVVDGQP
+FTNWYDNGSNQVAFGRGNRGFIVFNNDDWTFSLTLQTGLPAGTYCDVISGDKINGNCTGI
+KIYVSDDGKAHFSISNSAEDPFIAIHAESKL
+*/
+/*
+
+MKLFWLLFTIGFCWAQYSSNTQQGRTSIVHLFEWRWVDIALECERYLAPKGFGGVQVSPP
+
+NENVAIHNPFRPWWERYQPVSYKLCTRSGNEDEFRNMVTRCNNVGVRIYVDAVINHMCGN
+AVSAGTSSTCGSYFNPGSRDFPAVPYSGWDFNDGKCKTGSGDIENYNDATQVRDCRLSGL
+
+LDLALGKDYVRSKIAE>YMNHLIDIGVAGFRIDASKHMWPGDIKAILDKLHNLNSNWFPEG
+SKPFIYQEVIDLGGEPIKSSDYFGNGRVTEFKYGAKLGTVIRKWNGEKMSYLKNWGEGWG
+
+FMPSDRALVFVDNHDNQRGHGAGGASILTFWDARLYKMAVGFMLAHPYGFTRVMSSYRWP
+RYFENGKDVNDWVGPPNDNGVTKEVTINPDTTCGNDWVCEHRWRQIRNMVNFRNVVDGQP
+FTNWYDNGSNQVAFGRGNRGFIVFNNDDWTFSLTLQTGLPAGTYCDVISGDKINGNCTGI
+KIYVSDDGKAHFSISNSAEDPFIAIHAESKL
+
+*/
 export default {
   name: 'PageIndex',
   data () {
     return {
       seq: '',
-      exampleSeqs: [
+      examples: [
         `>tr|A6XGL2|A6XGL2_HUMAN Insulin OS=Homo sapiens OX=9606 GN=INS PE=1 SV=1
 MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAED
 LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN`,
@@ -152,6 +191,60 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
       } else {
         return this.$store.getters['pfam/current'].predictions[0].classes
       }
+    },
+    seqCount () {
+      // support 3 multi-sequence formats
+      // case 1 standard fasta
+      // case 2 no header single sequence
+      // case 2 no header multi sequence
+      const seq = this.seq.trim()
+      if (!seq) {
+        return 0
+      }
+      if (seq[0] === '>') {
+        return seq.match(/\s*^>/mg).length
+      }
+      const lines = seq.split('\n').reduce((a, v) => {
+        // remove empty lines
+        v = v.trim()
+        if (v) {
+          a.push(v)
+        }
+        return a
+      }, [])
+      if (lines.length === 1 || lines[0].length === lines[1].length) {
+        return 1
+      } else {
+        return lines.length
+      }
+    },
+    seqLength () {
+      // support 3 multi-sequence formats
+      // case 1 standard fasta
+      // case 2 no header single sequence
+      // case 2 no header multi sequence
+      const seq = this.seq.trim()
+      if (!seq) {
+        return 0
+      }
+      const lines = seq.split('\n').reduce((a, v) => {
+        // remove empty lines
+        v = v.trim()
+        if (v && v[0] !== '>') {
+          a.push(v)
+        }
+        return a
+      }, [])
+      return lines.join('').length
+    },
+    seqHelper () {
+      if (this.seqCount === 0) {
+        return 'Enter a single protein sequence with or without a header'
+      } else if (this.seqCount === 1) {
+        return `1 sequence (${this.seqLength} aa)`
+      } else {
+        return `${this.seqCount} sequences (${this.seqLength} aa total)`
+      }
     }
   },
   methods: {
@@ -165,25 +258,29 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
       const pfam = new Pfam({seq: this.seq})
       pfam.create()
     },
-    seqId (seq) {
+    fastaId (fasta) {
       /*
       let seq = `>tr|A6XGL2|A6XGL2_HUMAN Insulin OS=Homo sapiens OX=9606 GN=INS PE=1 SV=1
  mALWMRLLPLLALLaLWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAED
 LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN `
 */
-      return this.seqHeader(seq).split(' ')[0]
+      return this.fastaHeader(fasta).split(' ')[0]
     },
-    seqHeader (seq) {
-      return seq.split('\n')[0].trim()
+    fastaHeader (fasta) {
+      return fasta.split('\n')[0].trim()
     },
-    seqDescription (seq) {
-      return this.seqHeader(seq).substring(this.seqId(seq).length)
+    fastaDescription (fasta) {
+      return this.fastaHeader(fasta).substring(this.fastaId(fasta).length)
     },
-    seqLine (seq) {
-      return seq.split('\n').slice(1).map(line => line.trim().toUpperCase()).join('')
+    fastaLine (fasta) {
+      return fasta.split('\n').slice(1).map(line => line.trim().toUpperCase()).join('')
     },
-    seqLength (seq) {
-      return this.seqLine(seq).length
+    fastaLength (fasta) {
+      return this.fastaLine(fasta).length
+    },
+    loadSeq (fasta) {
+      // console.log(fasta)
+      this.seq = fasta
     },
     errorMessages (vState) {
       if (!vState.$error) {

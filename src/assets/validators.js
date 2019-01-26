@@ -61,7 +61,7 @@ export function isProtein () {
       // `
       return value.split('\n').every(line => {
         line = line.trim().toUpperCase()
-        console.log('isProtein', line)
+        // console.log('isProtein', line)
         return !line || (line[0] === '>') || proteinRe.test(line)
       })
     }
