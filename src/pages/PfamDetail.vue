@@ -87,7 +87,6 @@
 </style>
 
 <script>
-import { mapState } from 'vuex'
 import { maxLength } from 'vuelidate/lib/validators'
 import { isProtein } from 'assets/validators'
 /*
@@ -187,19 +186,7 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
       isProtein: isProtein()
     }
   },
-  watch: {
-    isCreatePending (val, oldVal) {
-      // console.log('isCreatePending new: %s, old: %s', val, oldVal)
-      if (val === false) {
-        // get id
-        if (this.$store.getters['pfam/current']) {
-          this.$router.push({ path: `/pfam/${this.$store.getters['pfam/current']._id}` })
-        }
-      }
-    }
-  },
   computed: {
-    ...mapState('pfam', { isCreatePending: 'isCreatePending' }),
     pfamCurrent () {
       if (!this.$store.getters['pfam/current']) {
         return ''
@@ -326,13 +313,10 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
         this.$q.notify('Please enter a valid protein sequence')
         return
       }
-      if (this.seqList.length > 1) {
-        this.$q.notify('Due to our limited resources, please submit only 1 sequence')
-        return
-      }
       const { Pfam } = this.$FeathersVuex
       const pfam = new Pfam(this.seqList[0])
       pfam.create()
+      // navigate to /pfam/:id after isCreatePending changes back to false
     },
     fastaId (fasta) {
       /*
