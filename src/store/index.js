@@ -20,7 +20,19 @@ export default function (/* { ssrContext } */) {
       example
     },
     plugins: [
-      service('pfam'),
+      service('pfam', {
+        instanceDefaults: {
+          _id: '',
+          domainMap: {},
+          header: '',
+          predictions: [{
+            classes: [],
+            top_classes: [],
+            top_probs: []
+          }],
+          seq: ''
+        }
+      }),
       // // Specify custom options per service
       // service('/v1/tasks', {
       //   idField: '_id', // The field in each record that will contain the id
