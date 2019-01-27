@@ -1,7 +1,13 @@
 <template>
   <q-page padding>
-    <div class="row justify-center">
-      <img class="center" alt="ANNotate logo" src="~assets/annotate-logo-long-282x92.png">
+    <div class="row">
+      <img class="" alt="ANNotate logo" src="~assets/annotate-logo-long-282x92.png">
+    </div>
+    <div class="row">
+      <div class="q-headline">Pfam Domain Prediction Results</div>
+    </div>
+    <div class="row">
+      <div class="q-my-sm q-title">{{ pfamHeader }}</div>
     </div>
     <ve-histogram
       :data="pfamChartData"
@@ -10,7 +16,7 @@
       :legend="legend"
       :tooltip="tooltip"
     ></ve-histogram>
-    <q-input
+    <!-- <q-input
       v-model="pfamClasses"
       float-label="Classes"
       type="textarea"
@@ -29,7 +35,7 @@
       v-model="pfamTopProbs"
       float-label="TopProbs"
       type="textarea"
-    />
+    /> -->
   </q-page>
 </template>
 
@@ -93,10 +99,6 @@ export default {
   data () {
     return {
       seq: '',
-      title: {
-        text: '男性女性身高体重分布',
-        subtext: '抽样调查来自: Heinz  2003'
-      },
       legend: {
         type: 'scroll',
         align: 'left',
@@ -148,6 +150,13 @@ export default {
   },
   computed: {
     ...mapGetters('pfam', { current: 'current' }),
+    pfamHeader () {
+      if (!this.current) {
+        return ''
+      } else {
+        return this.current.header
+      }
+    },
     pfamClasses () {
       if (!this.current) {
         return ''
@@ -195,6 +204,9 @@ export default {
         const rows = this.current.seq.split('').map((v, i) => {
           const row = this.current.predictions[0].top_classes[i].reduce((a, c, ii) => {
             a[this.current.domainMap[c]] = this.current.predictions[0].top_probs[i][ii]
+            if (c === 1) {
+              a[this.current.domainMap[c]] *= -1
+            }
             return a
           }, {})
           row[aaKey] = v
@@ -215,6 +227,8 @@ export default {
           stack: { domains: this.sortedDomains },
           yAxisType: ['percent'],
           yAxisName: ['Probability'],
+          max: [1],
+          min: [-1],
           digit: 2
         }
       }
