@@ -13,7 +13,7 @@
   "dependencies": {
     "@feathersjs/client": "^3.7.7",
     "axios": "^0.18.0",
-    "feathers-vuex": "^1.6.2",
+    "feathers-vuex": "^1.7.0-pre.52",
     "socket.io-client": "^2.2.0",
     "vue-i18n": "^7.3.3",
     "vuelidate": "^0.7.4"
