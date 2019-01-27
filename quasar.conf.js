@@ -37,7 +37,7 @@ module.exports = function (ctx) {
       },
       env: ctx.dev
       ? { // so on dev we'll have
-        API_URL: JSON.stringify('http://localhost:3030'),
+        API_URL: JSON.stringify('http://localhost:8581'),
         API_PATH: JSON.stringify('/socket.io')
       }
       : { // and on build (production):
