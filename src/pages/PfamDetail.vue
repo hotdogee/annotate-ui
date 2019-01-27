@@ -79,7 +79,6 @@
             <q-input
               v-model="seq"
               clearable
-              autofocus
               autocomplete="off"
               rows="2"
               float-label="Protein Sequence"
