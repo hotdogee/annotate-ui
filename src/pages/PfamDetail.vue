@@ -8,6 +8,16 @@
       float-label="Classes"
       type="textarea"
     />
+    <q-input
+      v-model="pfamTopClasses"
+      float-label="TopClasses"
+      type="textarea"
+    />
+    <q-input
+      v-model="pfamTopProbs"
+      float-label="TopProbs"
+      type="textarea"
+    />
   </q-page>
 </template>
 
@@ -46,7 +56,21 @@ export default {
       if (!this.current) {
         return ''
       } else {
-        return this.current.predictions[0].classes
+        return JSON.stringify(this.current.predictions[0].classes, null, '')
+      }
+    },
+    pfamTopClasses () {
+      if (!this.current) {
+        return ''
+      } else {
+        return JSON.stringify(this.current.predictions[0].top_classes, null, '')
+      }
+    },
+    pfamTopProbs () {
+      if (!this.current) {
+        return ''
+      } else {
+        return JSON.stringify(this.current.predictions[0].top_probs, null, '')
       }
     }
   },
