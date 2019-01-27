@@ -9,6 +9,11 @@
       type="textarea"
     />
     <q-input
+      v-model="pfamDomainMap"
+      float-label="DomainMap"
+      type="textarea"
+    />
+    <q-input
       v-model="pfamTopClasses"
       float-label="TopClasses"
       type="textarea"
@@ -71,6 +76,13 @@ export default {
         return ''
       } else {
         return JSON.stringify(this.current.predictions[0].top_probs, null, '')
+      }
+    },
+    pfamDomainMap () {
+      if (!this.current) {
+        return ''
+      } else {
+        return JSON.stringify(this.current.domainMap, null, '')
       }
     }
   },
