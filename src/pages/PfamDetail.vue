@@ -244,10 +244,10 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
     // fetch the data when the view is created
     if (!this.current || this.current._id !== this.$route.params.id) {
       const { Pfam } = this.$FeathersVuex
-      const pfam = await Pfam.get(this.$route.params.id)
-      console.log(pfam.seq)
-      this.seq = `${pfam.header}\n${pfam.seq}`
+      await Pfam.get(this.$route.params.id)
     }
+    // console.log(pfam.seq)
+    this.seq = `${this.current.header}\n${this.current.seq}`
   },
   computed: {
     ...mapState('pfam', { isCreatePending: 'isCreatePending' }),
