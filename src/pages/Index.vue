@@ -333,6 +333,8 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
       const { Pfam } = this.$FeathersVuex
       const pfam = new Pfam(this.seqList[0])
       pfam.create()
+      this.$ga.event('pfam', 'create', 'count', this.seqCount)
+      this.$ga.event('pfam', 'create', 'length', this.seqLength)
     },
     fastaId (fasta) {
       /*
