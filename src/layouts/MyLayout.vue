@@ -13,7 +13,7 @@
           aria-label="Menu"
           @click.native="$router.push('/')"
         >
-          <q-icon name="menu" />
+          <q-icon name="home" />
         </q-btn>
 
         <q-toolbar-title @click.native="$router.push('/')">
