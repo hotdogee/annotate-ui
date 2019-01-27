@@ -176,6 +176,17 @@ export default {
         return JSON.stringify(this.current.domainMap, null, '')
       }
     },
+    sortedDomains () {
+      if (!this.current) {
+        return []
+      } else {
+        const counts = this.current.predictions[0].top_classes.flat().reduce((a, c) => {
+          a[c] = a[c] ? a[c] + 1 : 1
+          return a
+        }, {})
+        return Object.keys(counts).sort((a, b) => counts[b] - counts[a]).map((v) => this.current.domainMap[v])
+      }
+    },
     pfamChartData () {
       if (!this.current) {
         return {}
@@ -189,19 +200,19 @@ export default {
           row[aaKey] = v
           return row
         })
-        console.log(this.current.domainMap)
-        const columns = Object.values(this.current.domainMap)
-        columns.unshift(aaKey)
-        return { columns, rows }
+        // console.log([aaKey].concat(this.sortedDomains))
+        return {
+          columns: [aaKey].concat(this.sortedDomains),
+          rows
+        }
       }
     },
     pfamChartSettings () {
       if (!this.current) {
         return {}
       } else {
-        const domains = Object.values(this.current.domainMap)
         return {
-          stack: { domains },
+          stack: { domains: this.sortedDomains },
           yAxisType: ['percent'],
           yAxisName: ['Probability'],
           digit: 2
