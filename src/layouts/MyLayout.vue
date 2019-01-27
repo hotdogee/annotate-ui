@@ -11,11 +11,12 @@
           dense
           round
           aria-label="Menu"
+          @click.native="$router.push('/')"
         >
           <q-icon name="menu" />
         </q-btn>
 
-        <q-toolbar-title>
+        <q-toolbar-title @click.native="$router.push('/')">
           ANNotate
           <div slot="subtitle">Protein Annotation using Recurrent Neural Networks</div>
         </q-toolbar-title>
