@@ -66,11 +66,11 @@
         @click='predict'
       />
     </div>
-    <q-input
+    <!-- <q-input
       v-model="pfamCurrent"
       float-label="Results"
       type="textarea"
-    />
+    /> -->
   </q-page>
 </template>
 
