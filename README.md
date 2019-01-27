@@ -16,6 +16,6 @@ NODE_ENV=production pm2 start npm --name annotate-api -- run start
 
 cd ../annotate-ui
 NODE_ENV=production pm2 start npm --name annotate-ui -- run start
-NODE_ENV=production pm2 start /usr/bin/http-server --name scada-iot-hmi -- ./dist --push-state -c 60 -p 8583 -d false
+NODE_ENV=production pm2 start /usr/bin/http-server --name annotate-ui -- ./dist/pwa-mat --push-state -c 60 -p 8583 -d false
 
 pm2 save
