@@ -24,6 +24,8 @@
 </style>
 
 <script>
+import { mapGetters } from 'vuex'
+
 export default {
   name: 'PfamDetail',
   data () {
@@ -31,12 +33,20 @@ export default {
       seq: ''
     }
   },
+  created () {
+    // fetch the data when the view is created
+    if (!this.current || this.current._id !== this.$route.params.id) {
+      const { Pfam } = this.$FeathersVuex
+      Pfam.get(this.$route.params.id)
+    }
+  },
   computed: {
+    ...mapGetters('pfam', { current: 'current' }),
     pfamClasses () {
-      if (!this.$store.getters['pfam/current']) {
+      if (!this.current) {
         return ''
       } else {
-        return this.$store.getters['pfam/current'].predictions[0].classes
+        return this.current.predictions[0].classes
       }
     }
   },
