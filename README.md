@@ -1,6 +1,22 @@
 # annotate-ui
 Protein Annotation using Recurrent Neural Network Models
 
+# Development
+
+## annotate-api
+```bash
+cd annotate-api
+npm run dev
+```
+starts feathers api on http://localhost:8581
+
+## annotate-ui
+```bash
+cd annotate-ui
+npm run dev
+```
+starts quasar ui on http://localhost:8080
+
 # Ports used
 
 * 8501 - TF Serving API

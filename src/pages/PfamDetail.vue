@@ -295,7 +295,7 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
           a[c] = a[c] ? a[c] + 1 : 1
           return a
         }, {})
-        return Object.keys(counts).sort((a, b) => counts[b] - counts[a]).map((v) => this.current.domainMap[v])
+        return Object.keys(counts).sort((a, b) => counts[b] - counts[a]).map((v) => this.current.domainMap[v].pfamId)
       }
     },
     pfamChartData () {
@@ -305,9 +305,9 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
         const aaKey = 'aa'
         const rows = this.current.seq.split('').map((v, i) => {
           const row = this.current.predictions[0].top_classes[i].reduce((a, c, ii) => {
-            a[this.current.domainMap[c]] = this.current.predictions[0].top_probs[i][ii]
+            a[this.current.domainMap[c].pfamId] = this.current.predictions[0].top_probs[i][ii]
             if (c === 1) {
-              a[this.current.domainMap[c]] *= -1
+              a[this.current.domainMap[c].pfamId] *= -1
             }
             return a
           }, {})
