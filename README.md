@@ -17,6 +17,10 @@ npm run dev
 ```
 starts quasar ui on http://localhost:8080
 
+```bash
+npm run build
+```
+
 # Ports used
 
 * 8501 - TF Serving API
