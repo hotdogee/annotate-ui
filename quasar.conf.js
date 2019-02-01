@@ -36,14 +36,14 @@ module.exports = function (ctx) {
         })
       },
       env: ctx.dev
-      ? { // so on dev we'll have
-        API_URL: JSON.stringify('http://localhost:8581'),
-        API_PATH: JSON.stringify('/socket.io')
-      }
-      : { // and on build (production):
-        API_URL: JSON.stringify('https://ann.hanl.in'),
-        API_PATH: JSON.stringify('/api/socket.io')
-      }
+        ? { // so on dev we'll have
+          API_URL: JSON.stringify('http://localhost:8581'),
+          API_PATH: JSON.stringify('/socket.io')
+        }
+        : { // and on build (production):
+          API_URL: JSON.stringify('https://ann.hanl.in'),
+          API_PATH: JSON.stringify('/api/socket.io')
+        }
       // compiles into
       // {NODE_ENV:"production",CLIENT:!0,SERVER:!1,DEV:!1,PROD:!0,THEME:"mat",MODE:"spa",API_URL:"https://ann.hanl.in",API_PATH:"/api/socket.io",VUE_ROUTER_MODE:"history",VUE_ROUTER_BASE:"/",APP_URL:"undefined"}
     },

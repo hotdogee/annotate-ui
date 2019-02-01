@@ -18,7 +18,7 @@
 
         <q-toolbar-title @click.native="$router.push('/')">
           ANNotate
-          <div slot="subtitle">Protein Annotation using Recurrent Neural Networks</div>
+          <div slot="subtitle">Protein Annotation using Neural Networks</div>
         </q-toolbar-title>
       </q-toolbar>
     </q-layout-header>

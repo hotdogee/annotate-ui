@@ -7,7 +7,10 @@
       <div class="q-headline">Pfam Domain Prediction Results</div>
     </div>
     <div class="row">
-      <div class="q-my-sm q-title">{{ pfamHeader }}</div>
+      <div class="q-my-sm q-title">{{ seqHeader }}</div>
+    </div>
+    <div class="row">
+      <div class="q-my-sm q-subheading">Sequence Length: {{ seqLength }} aa</div>
     </div>
     <ve-histogram
       :data="pfamChartData"
@@ -15,6 +18,13 @@
       :legend="legend"
       :tooltip="tooltip"
     ></ve-histogram>
+    <q-table
+      :title="pfamTableTitle"
+      :data="pfamTableData"
+      :columns="pfamTableColumns"
+      row-key="start"
+    />
+    <hr class="q-hr q-my-xl">
     <!-- <q-input
       v-model="pfamClasses"
       float-label="Classes"
@@ -72,7 +82,7 @@
             id="protein-field"
             class="col q-subheading"
             label=""
-            :helper="seqHelper"
+            :helper="inputHelper"
             :error="$v.seq.$error"
             :error-label="errorMessages($v.seq)"
           >
@@ -101,15 +111,15 @@
 </template>
 
 <style lang="stylus">
-// #protein-field .q-input
-//   font-family monospace
-// //   height 200px
-// // .q-layout-page > .row + .row
-// #predict
-//   margin-top 1.5rem
-// #example-btn
-//   margin-top 21px
-//   margin-right 5px
+#protein-field .q-input
+  font-family monospace
+//   height 200px
+// .q-layout-page > .row + .row
+#predict
+  margin-top 1.5rem
+#example-btn
+  margin-top 21px
+  margin-right 5px
 </style>
 
 <script>
@@ -205,22 +215,52 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
           return tpl.join('')
         }
       },
-      chartSettings: {
-        stack: {
-          'yyy': ['cost', 'profit']
-        }
-      },
-      chartData: {
-        columns: ['date', 'cost', 'profit'],
-        rows: [
-          { 'date': '01/01', 'cost': -123, 'profit': 300 },
-          { 'date': '01/01', 'cost': -1223, 'profit': 600 },
-          { 'date': '01/03', 'cost': -2123, 'profit': 9000 },
-          { 'date': '01/03', 'cost': -4123, 'profit': 1200 },
-          { 'date': '01/05', 'cost': -3123, 'profit': 1500 },
-          { 'date': '01/01', 'cost': -7123, 'profit': 2000 }
-        ]
-      }
+      pfamTableTitle: '', // 'Predicted Pfam Regions'
+      pfamTableColumns: [
+        // column Object definition
+        // {
+        //   // unique id (used by row-key, pagination.sortBy, ...)
+        //   name: 'desc',
+
+        //   // label for header
+        //   label: 'Dessert (100g serving)',
+
+        //   // row Object property to determine value for this column
+        //   field: 'name',
+        //   // OR field: row => row.some.nested.prop
+
+        //   // (optional) if we use visible-columns, this col will always be visible
+        //   required: true,
+
+        //   // (optional) alignment
+        //   align: 'left',
+
+        //   // (optional) tell QTable you want this column sortable
+        //   sortable: true,
+
+        //   // (optional) compare function if you have
+        //   // some custom data or want a specific way to compare two rows
+        //   sort: (a, b) => parseInt(a, 10) - parseInt(b, 10)
+        //   // function return value:
+        //   //   * is less than 0 then sort a to an index lower than b, i.e. a comes first
+        //   //   * is 0 then leave a and b unchanged with respect to each other, but sorted with respect to all different elements
+        //   //   * is greater than 0 then sort b to an index lower than a, i.e. b comes first
+
+        //   // (optional) you can format the data with a function
+        //   format: val => `${val}%`
+
+        //   // v0.17.9+; if using scoped slots, apply this yourself instead
+        //   style: 'width: 500px',
+        //   classes: 'my-special-class'
+        // }
+        { name: 'start', label: 'Start', field: 'start', sortable: true },
+        { name: 'end', label: 'End', field: 'end', sortable: true },
+        { name: 'pfamAcc', label: 'Pfam accession', field: 'pfamAcc', sortable: true },
+        { name: 'pfamId', label: 'Pfam ID', field: 'pfamId', sortable: true },
+        { name: 'clanAcc', label: 'Clan accession', field: 'clanAcc', sortable: true },
+        { name: 'clanId', label: 'Clan ID', field: 'clanId', sortable: true },
+        { name: 'pfamDesc', label: 'Pfam description', field: 'pfamDesc', sortable: false }
+      ]
     }
   },
   validations: {
@@ -252,11 +292,18 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
   computed: {
     ...mapState('pfam', { isCreatePending: 'isCreatePending' }),
     ...mapGetters('pfam', { current: 'current' }),
-    pfamHeader () {
+    seqHeader () {
       if (!this.current) {
         return ''
       } else {
         return this.current.header
+      }
+    },
+    seqLength () {
+      if (!this.current) {
+        return ''
+      } else {
+        return this.current.seq.length
       }
     },
     pfamClasses () {
@@ -335,7 +382,32 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
         }
       }
     },
-    seqCount () {
+    pfamTableData () {
+      if (!this.current) {
+        return []
+      } else {
+        return this.current.predictions[0].classes.reduce((a, v, i, c) => {
+          if (v !== 1) {
+            if (v !== c[i - 1]) {
+              // start a new row
+              a.push({
+                start: i + 1, // 1-indexed
+                end: i + 1,
+                pfamAcc: this.current.domainMap[v].pfamAcc,
+                pfamId: this.current.domainMap[v].pfamId,
+                clanAcc: this.current.domainMap[v].clanAcc,
+                clanId: this.current.domainMap[v].clanId,
+                pfamDesc: this.current.domainMap[v].pfamDesc
+              })
+            } else {
+              a.slice(-1)[0].end = i + 1
+            }
+          }
+          return a
+        }, []).filter(row => row.end - row.start > 3)
+      }
+    },
+    inputCount () {
       // support 3 multi-sequence formats
       // case 1 standard fasta
       // case 2 no header single sequence
@@ -361,7 +433,7 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
         return lines.length
       }
     },
-    seqLength () {
+    inputLength () {
       // support 3 multi-sequence formats
       // case 1 standard fasta
       // case 2 no header single sequence
@@ -380,22 +452,22 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
       }, [])
       return lines.join('').length
     },
-    seqHelper () {
-      if (this.seqCount === 0) {
+    inputHelper () {
+      if (this.inputCount === 0) {
         return 'Enter a single protein sequence with or without a header'
-      } else if (this.seqCount === 1) {
-        return `1 sequence (${this.seqLength} aa)`
+      } else if (this.inputCount === 1) {
+        return `1 sequence (${this.inputLength} aa)`
       } else {
-        return `${this.seqCount} sequences (${this.seqLength} aa total)`
+        return `${this.inputCount} sequences (${this.inputLength} aa total)`
       }
     },
     predictLabel () {
-      if (this.seqCount === 0) {
+      if (this.inputCount === 0) {
         return 'Submit'
-      } else if (this.seqCount === 1) {
+      } else if (this.inputCount === 1) {
         return `Submit 1 sequence`
       } else {
-        return `Submit ${this.seqCount} sequences`
+        return `Submit ${this.inputCount} sequences`
       }
     },
     seqList () {
@@ -484,7 +556,7 @@ LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN `
     },
     loadSeq (fasta) {
       // console.log(fasta)
-      this.seq = fasta
+      this.seq = '>PROTEIN_00001\n' + fasta.split('\n').slice(1).map(line => line.trim().toUpperCase()).join('\n')
     },
     errorMessages (vState) {
       if (!vState.$error) {

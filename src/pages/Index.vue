@@ -327,7 +327,7 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
         return
       }
       if (this.seqList.length > 1) {
-        this.$q.notify('Due to our limited resources, please submit only 1 sequence')
+        this.$q.notify('Due to limited resources, please submit only 1 sequence')
         return
       }
       const { Pfam } = this.$FeathersVuex
@@ -358,7 +358,7 @@ LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN `
     },
     loadSeq (fasta) {
       // console.log(fasta)
-      this.seq = fasta
+      this.seq = '>PROTEIN_00001\n' + fasta.split('\n').slice(1).map(line => line.trim().toUpperCase()).join('\n')
     },
     errorMessages (vState) {
       if (!vState.$error) {
