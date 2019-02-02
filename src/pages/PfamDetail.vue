@@ -23,7 +23,29 @@
       :data="pfamTableData"
       :columns="pfamTableColumns"
       row-key="start"
-    />
+    >
+      <!-- slot name syntax: body-cell-<column_name> -->
+      <q-td slot="body-cell-pfamAcc" slot-scope="props" :props="props">
+        <q-btn
+          icon-right="open_in_new"
+          :label="props.value"
+          @click="familyLink(props.value)"
+          color="secondary"
+          flat dense
+        >
+        </q-btn>
+      </q-td>
+      <q-td slot="body-cell-clanAcc" slot-scope="props" :props="props">
+        <q-btn
+          icon-right="open_in_new"
+          :label="props.value"
+          @click="clanLink(props.value)"
+          color="secondary"
+          flat dense
+        >
+        </q-btn>
+      </q-td>
+    </q-table>
     <hr class="q-hr q-my-xl">
     <!-- <q-input
       v-model="pfamClasses"
@@ -130,6 +152,7 @@ import VeHistogram from 'v-charts/lib/histogram.common'
 import 'echarts/lib/component/legendScroll'
 import numerify from 'numerify'
 import { isFunction } from 'utils-lite'
+import { openURL } from 'quasar'
 
 const itemPoint = (color) => {
   return [
@@ -557,6 +580,12 @@ LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN `
     loadSeq (fasta) {
       // console.log(fasta)
       this.seq = '>PROTEIN_00001\n' + fasta.split('\n').slice(1).map(line => line.trim().toUpperCase()).join('\n')
+    },
+    familyLink (pfamAcc) {
+      openURL(`http://pfam.xfam.org/family/${pfamAcc}`)
+    },
+    clanLink (clanAcc) {
+      openURL(`http://pfam.xfam.org/clan/${clanAcc}`)
     },
     errorMessages (vState) {
       if (!vState.$error) {
