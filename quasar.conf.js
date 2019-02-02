@@ -74,6 +74,7 @@ module.exports = function (ctx) {
         'QItemMain',
         'QItemSeparator',
         'QItemSide',
+        'QItemTile',
         'QTable',
         'QPopover',
         'QField',
