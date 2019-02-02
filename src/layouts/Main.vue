@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
+  <q-layout view="lHh Lpr fff">
     <q-layout-header>
       <q-toolbar
         color="primary"
@@ -59,6 +59,22 @@
     <q-page-container>
       <router-view />
     </q-page-container>
+
+    <q-layout-footer>
+      <q-toolbar color="dark">
+        <q-toolbar-title>
+          <small class="text-grey-5">Made with <span class="text-red-14">❤</span> by Han Lin <span class="gt-xs">(hotdogee)</span></small>
+        </q-toolbar-title>
+        <q-toolbar-title>
+          <small class="text-grey-5 float-right">© {{ new Date().getFullYear() }}</small>
+        </q-toolbar-title>
+        <q-select
+          dark
+          v-model="lang"
+          :options="langOptions"
+        />
+      </q-toolbar>
+    </q-layout-footer>
   </q-layout>
 </template>
 
@@ -71,7 +87,27 @@ export default {
   name: 'MyLayout',
   data () {
     return {
-      leftDrawerOpen: false
+      lang: this.$q.i18n.lang,
+      langOptions: [
+        {
+          label: 'English',
+          value: 'en-us'
+        },
+        {
+          label: '繁中',
+          value: 'zh-hant'
+        }
+      ],
+      showUserForm: 'sign-in',
+      leftDrawerOpen: false,
+      credentials: {
+        email: '',
+        password: '',
+        recaptchaToken: '',
+        disableGoogle: true,
+        disableFacebook: true,
+        disableTwitter: true
+      }
     }
   },
   methods: {
