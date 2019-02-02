@@ -7,7 +7,8 @@ module.exports = function (ctx) {
       'i18n',
       'axios',
       'vuelidate',
-      'analytics'
+      'analytics',
+      'v-tooltip'
     ],
     css: [
       'app.styl'
@@ -52,35 +53,39 @@ module.exports = function (ctx) {
       // port: 8080,
       open: true // opens browser window automatically
     },
-    // framework: 'all' --- includes everything; for dev only!
-    framework: 'all',
-    // framework: {
-    //   components: [
-    //     'QLayout',
-    //     'QLayoutHeader',
-    //     'QLayoutDrawer',
-    //     'QPageContainer',
-    //     'QPage',
-    //     'QToolbar',
-    //     'QToolbarTitle',
-    //     'QBtn',
-    //     'QIcon',
-    //     'QList',
-    //     'QListHeader',
-    //     'QItem',
-    //     'QItemMain',
-    //     'QItemSide'
-    //   ],
-    //   directives: [
-    //     'Ripple'
-    //   ],
-    //   // Quasar plugins
-    //   plugins: [
-    //     'Notify'
-    //   ]
-    //   // iconSet: ctx.theme.mat ? 'material-icons' : 'ionicons'
-    //   // i18n: 'de' // Quasar language
-    // },
+    // framework: 'all', // includes everything; for dev only!
+    framework: {
+      components: [
+        'QLayout',
+        'QLayoutHeader',
+        'QLayoutDrawer',
+        'QPageContainer',
+        'QPage',
+        'QToolbar',
+        'QToolbarTitle',
+        'QBtn',
+        'QIcon',
+        'QList',
+        'QListHeader',
+        'QItem',
+        'QItemMain',
+        'QItemSide',
+        'QTable',
+        'QPopover',
+        'QField',
+        'QInput'
+      ],
+      directives: [
+        'Ripple',
+        'CloseOverlay'
+      ],
+      // Quasar plugins
+      plugins: [
+        'Notify'
+      ]
+      // iconSet: ctx.theme.mat ? 'material-icons' : 'ionicons'
+      // i18n: 'de' // Quasar language
+    },
     // animations: 'all' --- includes all animations
     animations: [],
     ssr: {
