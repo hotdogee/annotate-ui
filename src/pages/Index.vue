@@ -11,6 +11,7 @@
             color="primary"
             flat round dense
             id="example-btn"
+            @click="disableTutorial"
             v-tooltip="{
               content: 'Load example sequences here',
               show: showTip,
@@ -274,6 +275,7 @@ export default {
     return {
       seq: '',
       showTip: false,
+      showTutorial: true,
       examples: [
         `>tr|A6XGL2|A6XGL2_HUMAN Insulin OS=Homo sapiens OX=9606 GN=INS PE=1 SV=1
 MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAED
@@ -295,6 +297,10 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
       ]
     }
   },
+  storage: {
+    keys: ['showTutorial'],
+    namespace: 'protein-input'
+  },
   validations: {
     seq: {
       maxLength: maxLength(50000),
@@ -315,7 +321,9 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
   async created () {
     // display tooltip after 5 secs
     setTimeout(() => {
-      this.showTip = true
+      if (this.showTutorial === true) {
+        this.showTip = true
+      }
     }, 5000)
   },
   computed: {
@@ -440,6 +448,9 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
     }
   },
   methods: {
+    disableTutorial () {
+      this.showTutorial = false
+    },
     predict () {
       // this.$v.seq.$touch()
       if (!this.seq || this.$v.seq.$error) {

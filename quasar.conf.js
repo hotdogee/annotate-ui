@@ -8,7 +8,8 @@ module.exports = function (ctx) {
       'axios',
       'vuelidate',
       'analytics',
-      'v-tooltip'
+      'v-tooltip',
+      'vuejs-storage'
     ],
     css: [
       'app.styl'
@@ -69,6 +70,7 @@ module.exports = function (ctx) {
         'QListHeader',
         'QItem',
         'QItemMain',
+        'QItemSeparator',
         'QItemSide',
         'QTable',
         'QPopover',

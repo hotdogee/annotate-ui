@@ -23,6 +23,7 @@
     "v-tooltip": "^2.0.0-rc.33",
     "vue-analytics": "^5.16.2",
     "vue-i18n": "^7.3.3",
+    "vuejs-storage": "^3.0.1",
     "vuelidate": "^0.7.4"
   },
   "devDependencies": {
