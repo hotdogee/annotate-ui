@@ -39,16 +39,21 @@ cd ../annotate-ui
 NODE_ENV=production sudo pm2 start npm --name annotate-ui -- run start
 NODE_ENV=production sudo pm2 start /usr/bin/http-server --name annotate-ui -- ./dist/pwa-mat -c-1 -p 8583 -d false
 
-pm2 save
+sudo pm2 save
+sudo pm2 startup
 ```
 
-# start tensorflow serving
+# tensorflow serving
+## start
 ```bash
 IP: 192.168.1.63
 
-docker run --runtime=nvidia -p 8501:8501 --mount type=bind,source=/home/hotdogee/export,target=/models/pfam -e MODEL_NAME=pfam -t tensorflow/serving:latest-gpu
+docker run --runtime=nvidia -p 8501:8501 --name serving_annotate --mount type=bind,source=/home/hotdogee/export,target=/models/pfam -e MODEL_NAME=pfam -e CUDA_VISIBLE_DEVICES=0 -t tensorflow/serving:latest-gpu
 ```
-
+## stop
+```bash
+docker stop serving_annotate
+```
 # nginx conf
 ```
 server {
@@ -63,6 +68,9 @@ server {
     ssl_certificate /etc/nginx/ssl/hanl.in/hanl.in.crt;
     ssl_certificate_key /etc/nginx/ssl/hanl.in/hanl.in.key;
     ssl_trusted_certificate /etc/nginx/ssl/hanl.in/ggssl_trusted.crt;
+
+    # Strict Transport Security
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
     location /api {
         return 302 /api/;
