@@ -1,20 +1,39 @@
 # annotate-ui
+
 Protein Annotation using Recurrent Neural Network Models
+
+# Release workflow
+
+```bash
+npm run release
+git describe
+git push --follow-tags origin master
+```
+
+- standard-version does the following:
+  - bumps the version in metadata files (package.json, composer.json, etc).
+  - uses conventional-changelog to update CHANGELOG.md
+  - commits package.json (et al.) and CHANGELOG.md
+  - tags a new release
 
 # Development
 
 ## annotate-api
+
 ```bash
 cd annotate-api
 npm run dev
 ```
+
 starts feathers api on http://localhost:8581
 
 ## annotate-ui
+
 ```bash
 cd annotate-ui
 npm run dev
 ```
+
 starts quasar ui on http://localhost:8080
 
 ```bash
@@ -23,11 +42,12 @@ npm run build
 
 # Ports used
 
-* 8501 - TF Serving API
-* 8583 - Quasar UI
-* 8581 - Feathers API
+- 8501 - TF Serving API
+- 8583 - Quasar UI
+- 8581 - Feathers API
 
 # Setup server
+
 ```bash
 npm i -g pm2
 npm i -g spa-http-server
@@ -44,17 +64,23 @@ sudo pm2 startup
 ```
 
 # tensorflow serving
+
 ## start
+
 ```bash
 IP: 192.168.1.63
 
 docker run --runtime=nvidia -p 8501:8501 --name serving_annotate --mount type=bind,source=/home/hotdogee/export,target=/models/pfam -e MODEL_NAME=pfam -e CUDA_VISIBLE_DEVICES=0 -t tensorflow/serving:latest-gpu
 ```
+
 ## stop
+
 ```bash
 docker stop serving_annotate
 ```
+
 # nginx conf
+
 ```
 server {
     listen      80;

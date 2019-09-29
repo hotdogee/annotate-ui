@@ -1,25 +1,35 @@
 <template>
   <q-page padding>
     <div class="row justify-center">
-      <img class="center" alt="ANNotate logo" src="~assets/annotate-logo-long-282x92.png">
+      <img
+        class="center"
+        alt="ANNotate logo"
+        src="~assets/annotate-logo-long-v2-h92"
+      />
     </div>
     <div class="row justify-center">
       <div class="col-xs-12 col-sm-10 col-lg-8">
         <div class="row no-wrap q-field-floating">
           <q-btn
-            icon="keyboard_arrow_right"
-            color="primary"
-            flat round dense
             id="example-btn"
-            @click="disableTutorial"
             v-tooltip="{
               content: 'Load example sequences here',
               show: showTip,
               delay: { show: 500, hide: 100 }
             }"
+            icon="keyboard_arrow_right"
+            color="primary"
+            flat
+            round
+            dense
+            @click="disableTutorial"
           >
             <q-popover>
-              <q-list link class="scroll" style="min-width: 100px; max-width: 90vw;">
+              <q-list
+                link
+                class="scroll"
+                style="min-width: 100px; max-width: 90vw;"
+              >
                 <q-list-header>Recent Submissions</q-list-header>
                 <q-item-separator />
                 <q-list-header>Example Proteins</q-list-header>
@@ -36,7 +46,9 @@
                     sublabel-lines="1"
                   />
                   <q-item-side right>
-                    <q-item-tile stamp>{{ fastaLength(fasta) }} aa</q-item-tile>
+                    <q-item-tile stamp>
+                      {{ fastaLength(fasta) }} aa
+                    </q-item-tile>
                   </q-item-side>
                 </q-item>
               </q-list>
@@ -45,7 +57,7 @@
           <q-field
             id="protein-field"
             class="col q-subheading"
-            label=""
+            label
             :helper="seqHelper"
             :error="$v.seq.$error"
             :error-label="errorMessages($v.seq)"
@@ -69,27 +81,32 @@
         id="predict"
         :label="predictLabel"
         color="primary"
-        @click='predict'
+        @click="predict"
       />
     </div>
     <!-- <q-input
       v-model="pfamCurrent"
       float-label="Results"
       type="textarea"
-    /> -->
+    />-->
   </q-page>
 </template>
 
 <style lang="stylus">
-#protein-field .q-input
-  font-family monospace
-//   height 200px
+#protein-field .q-input {
+  font-family: monospace;
+}
+
+// height 200px
 // .q-layout-page > .row + .row
-#predict
-  margin-top 1.5rem
-#example-btn
-  margin-top 21px
-  margin-right 5px
+#predict {
+  margin-top: 1.5rem;
+}
+
+#example-btn {
+  margin-top: 21px;
+  margin-right: 5px;
+}
 </style>
 
 <style>
@@ -115,11 +132,11 @@
   z-index: 1;
 }
 
-.tooltip[x-placement^="top"] {
+.tooltip[x-placement^='top'] {
   margin-bottom: 5px;
 }
 
-.tooltip[x-placement^="top"] .tooltip-arrow {
+.tooltip[x-placement^='top'] .tooltip-arrow {
   border-width: 5px 5px 0 5px;
   border-left-color: transparent !important;
   border-right-color: transparent !important;
@@ -130,11 +147,11 @@
   margin-bottom: 0;
 }
 
-.tooltip[x-placement^="bottom"] {
+.tooltip[x-placement^='bottom'] {
   margin-top: 5px;
 }
 
-.tooltip[x-placement^="bottom"] .tooltip-arrow {
+.tooltip[x-placement^='bottom'] .tooltip-arrow {
   border-width: 0 5px 5px 5px;
   border-left-color: transparent !important;
   border-right-color: transparent !important;
@@ -145,11 +162,11 @@
   margin-bottom: 0;
 }
 
-.tooltip[x-placement^="right"] {
+.tooltip[x-placement^='right'] {
   margin-left: 5px;
 }
 
-.tooltip[x-placement^="right"] .tooltip-arrow {
+.tooltip[x-placement^='right'] .tooltip-arrow {
   border-width: 5px 5px 5px 0;
   border-left-color: transparent !important;
   border-top-color: transparent !important;
@@ -160,11 +177,11 @@
   margin-right: 0;
 }
 
-.tooltip[x-placement^="left"] {
+.tooltip[x-placement^='left'] {
   margin-right: 5px;
 }
 
-.tooltip[x-placement^="left"] .tooltip-arrow {
+.tooltip[x-placement^='left'] .tooltip-arrow {
   border-width: 5px 0 5px 5px;
   border-top-color: transparent !important;
   border-right-color: transparent !important;
@@ -180,7 +197,7 @@
   color: black;
   padding: 24px;
   border-radius: 5px;
-  box-shadow: 0 5px 30px rgba(black, .1);
+  box-shadow: 0 5px 30px rgba(black, 0.1);
 }
 
 .tooltip.popover .popover-arrow {
@@ -190,13 +207,13 @@
 .tooltip[aria-hidden='true'] {
   visibility: hidden;
   opacity: 0;
-  transition: opacity .15s, visibility .15s;
+  transition: opacity 0.15s, visibility 0.15s;
 }
 
 .tooltip[aria-hidden='false'] {
   visibility: visible;
   opacity: 1;
-  transition: opacity .15s;
+  transition: opacity 0.15s;
 }
 </style>
 
@@ -345,7 +362,7 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
         return 0
       }
       if (seq[0] === '>') {
-        return seq.match(/^\s*>/mg).length
+        return seq.match(/^\s*>/gm).length
       }
       const lines = seq.split('\n').reduce((a, v) => {
         // remove empty lines
@@ -433,10 +450,12 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
         return a
       }, [])
       if (lines.length === 1 || lines[0].length === lines[1].length) {
-        return [{
-          header: '>PROTEIN_00001',
-          seq: lines.join('')
-        }]
+        return [
+          {
+            header: '>PROTEIN_00001',
+            seq: lines.join('')
+          }
+        ]
       } else {
         return lines.map((v, i) => {
           return {
@@ -482,14 +501,24 @@ LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN `
       return this.fastaHeader(fasta).substring(this.fastaId(fasta).length)
     },
     fastaLine (fasta) {
-      return fasta.split('\n').slice(1).map(line => line.trim().toUpperCase()).join('')
+      return fasta
+        .split('\n')
+        .slice(1)
+        .map(line => line.trim().toUpperCase())
+        .join('')
     },
     fastaLength (fasta) {
       return this.fastaLine(fasta).length
     },
     loadSeq (fasta) {
       // console.log(fasta)
-      this.seq = '>PROTEIN_00001\n' + fasta.split('\n').slice(1).map(line => line.trim().toUpperCase()).join('\n')
+      this.seq =
+        '>PROTEIN_00001\n' +
+        fasta
+          .split('\n')
+          .slice(1)
+          .map(line => line.trim().toUpperCase())
+          .join('\n')
     },
     errorMessages (vState) {
       if (!vState.$error) {

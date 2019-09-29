@@ -1,8 +1,7 @@
-
 const routes = [
   {
     path: '/',
-    component: () => import('layouts/Main.vue'),
+    component: () => import('layouts/Index.vue'),
     children: [
       { path: 'pfam/:id', component: () => import('pages/PfamDetail.vue') },
       { path: 'pfam', component: () => import('pages/Index.vue') },

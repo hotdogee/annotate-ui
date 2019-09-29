@@ -1,32 +1,130 @@
 // Configuration for your app
+// https://quasar.dev/quasar-cli/quasar-conf-js
+require('dotenv').config()
+const fs = require('fs')
+const isWsl = require('is-wsl')
+const path = require('path')
+const _ = require('lodash')
+const gitRevisionPlugin = new (require('git-revision-webpack-plugin'))()
+// const Terser = require('terser-webpack-plugin')
+const AddAssetPlugin = require('add-asset-webpack-plugin')
+const env = {
+  API_URL: JSON.stringify(process.env.API_URL),
+  API_PATH: JSON.stringify(process.env.API_PATH),
+  RECAPTCHA_SITE_KEY: JSON.stringify(process.env.RECAPTCHA_SITE_KEY),
+  DEBUG: JSON.stringify(process.env.DEBUG),
+  VERSION: JSON.stringify(gitRevisionPlugin.version()),
+  COMMITHASH: JSON.stringify(gitRevisionPlugin.commithash()),
+  VAPID_PUBLIC: JSON.stringify(process.env.VAPID_PUBLIC)
+}
+
+// use for devServer.open
+let chromeName = ''
+// let firefoxName = ''
+// let chromeWslName = ''
+// let firefoxWslName = ''
+if (process.platform === 'darwin') {
+  chromeName = 'google chrome canary'
+  // firefoxName = 'firefox'
+} else if (process.platform === 'win32' || isWsl) {
+  chromeName = 'Chrome'
+  // firefoxName = 'C:\\Program Files\\Mozilla Firefox\\firefox.exe'
+  // chromeWslName = '/mnt/c/Program Files (x86)/Google/Chrome/Application/chrome.exe'
+  // firefoxWslName = '/mnt/c/Program Files/Mozilla Firefox/firefox.exe'
+} else if (process.platform === 'linux') {
+  chromeName = 'google-chrome'
+  // firefoxName = 'firefox'
+}
 
 module.exports = function (ctx) {
+  const swPath = path.resolve('./src-pwa/custom-service-worker.js')
   return {
-    // app plugins (/src/plugins)
-    plugins: [
+    // app boot file (/src/boot)
+    // --> boot files are part of "main.js"
+    boot: [
+      'logger',
       'i18n',
+      'font-size',
       'axios',
-      'vuelidate',
       'analytics',
+      'feathers',
+      'guards',
+      'vuelidate',
+      'vue-components',
+      // 'vuera'
+      'workbox',
       'v-tooltip',
       'vuejs-storage'
     ],
-    css: [
-      'app.styl'
-    ],
+
+    css: ['app.styl'],
+
     extras: [
-      ctx.theme.mat ? 'roboto-font' : null,
+      'ionicons-v4',
+      // 'mdi-v3',
+      'fontawesome-v5',
+      // 'eva-icons',
+      // 'themify',
+      // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
+      'roboto-font', // optional, you are not bound to it
       'material-icons' // optional, you are not bound to it
-      // 'ionicons',
-      // 'mdi',
-      // 'fontawesome'
     ],
+
+    framework: {
+      // iconSet: 'ionicons-v4',
+      // lang: 'de', // Quasar language
+
+      all: 'auto', // Auto import Quasar components and directives
+
+      // components: [
+      //   'QLayout',
+      //   'QHeader',
+      //   'QFooter',
+      //   'QSpace',
+      //   'QDrawer',
+      //   'QPageContainer',
+      //   'QPage',
+      //   'QToolbar',
+      //   'QToolbarTitle',
+      //   'QBtn',
+      //   'QIcon',
+      //   'QList',
+      //   'QItem',
+      //   'QItemSection',
+      //   'QItemLabel',
+      //   'QSeparator',
+      //   'QTabs',
+      //   'QTab',
+      //   'QRouteTab',
+      //   'QCard',
+      //   'QCardSection',
+      //   'QCardActions',
+      //   'QField',
+      //   'QInput',
+      //   'QTime',
+      //   'QDate',
+      //   'QMenu',
+      //   'QDialog',
+      //   'QPopupProxy',
+      //   'QImg'
+      // ],
+
+      // directives: ['Ripple', 'ClosePopup'],
+
+      // Quasar plugins
+      plugins: ['Notify'],
+      lang: 'zh-hant' // Quasar language
+    },
+
     supportIE: true,
+
     build: {
+      productName: `${ctx.dev ? '[DEV] ' : ''}${this.pkg.productName}`,
       scopeHoisting: true,
       vueRouterMode: 'history',
+      devtool: 'source-map',
       // vueCompiler: true,
-      gzip: true,
+      // gzip: true,
       // analyze: true,
       // extractCSS: false,
       extendWebpack (cfg) {
@@ -34,117 +132,127 @@ module.exports = function (ctx) {
           enforce: 'pre',
           test: /\.(js|vue)$/,
           loader: 'eslint-loader',
-          exclude: /node_modules/
+          exclude: /node_modules/,
+          options: {
+            formatter: require('eslint').CLIEngine.getFormatter('stylish')
+          }
         })
+        // cfg.plugins.push(new GitRevisionPlugin())
+        if (ctx.mode.pwa) {
+          let sw = fs.readFileSync(swPath, 'utf-8')
+          _.forEach(Object.entries(env), ([k, v]) => {
+            sw = sw.replace(new RegExp(`process.env.${k}`, 'g'), v)
+          })
+          cfg.plugins.unshift(
+            new AddAssetPlugin(
+              swPath,
+              sw
+              // fs.readFileSync('./src-pwa/custom-service-worker.js', 'utf-8')
+              // 'console.log(`SW: ${process.env.VERSION}`)'
+              // sw
+            )
+          )
+        }
+        // cfg.optimization.minimizer = cfg.optimization.minimizer || []
+        // cfg.optimization.minimizer.push(new Terser({
+        //   // Ensure .mjs files get included.
+        //   test: /\.m?js$/
+        // }))
+        // cfg.node.__filename = true
       },
-      env: ctx.dev
-        ? { // so on dev we'll have
-          API_URL: JSON.stringify('http://localhost:8581'),
-          API_PATH: JSON.stringify('/socket.io')
-        }
-        : { // and on build (production):
-          API_URL: JSON.stringify('https://ann.hanl.in'),
-          API_PATH: JSON.stringify('/api/socket.io')
-        }
-      // compiles into
-      // {NODE_ENV:"production",CLIENT:!0,SERVER:!1,DEV:!1,PROD:!0,THEME:"mat",MODE:"spa",API_URL:"https://ann.hanl.in",API_PATH:"/api/socket.io",VUE_ROUTER_MODE:"history",VUE_ROUTER_BASE:"/",APP_URL:"undefined"}
+      env
     },
+
     devServer: {
-      // https: true,
-      // port: 8080,
-      open: true // opens browser window automatically
+      // https: true, // chrome://flags/#allow-insecure-localhost
+      public: process.env.DEV_SERVER_PUBLIC || '',
+      port: process.env.DEV_SERVER_PORT || 8583,
+      open: chromeName // opens browser window automatically
     },
-    // framework: 'all', // includes everything; for dev only!
-    framework: {
-      components: [
-        'QLayout',
-        'QLayoutHeader',
-        'QLayoutFooter',
-        'QLayoutDrawer',
-        'QPageContainer',
-        'QPage',
-        'QToolbar',
-        'QToolbarTitle',
-        'QBtn',
-        'QSelect',
-        'QIcon',
-        'QList',
-        'QListHeader',
-        'QItem',
-        'QItemMain',
-        'QItemSeparator',
-        'QItemSide',
-        'QItemTile',
-        'QTable',
-        'QTd',
-        'QPopover',
-        'QField',
-        'QInput'
-      ],
-      directives: [
-        'Ripple',
-        'CloseOverlay'
-      ],
-      // Quasar plugins
-      plugins: [
-        'Notify'
-      ]
-      // iconSet: ctx.theme.mat ? 'material-icons' : 'ionicons'
-      // i18n: 'de' // Quasar language
-    },
-    // animations: 'all' --- includes all animations
-    animations: [],
+
+    animations: 'all', // --- includes all animations
+    // animations: [],
+
     ssr: {
       pwa: false
     },
+
     pwa: {
+      // workboxPluginMode: 'GenerateSW',
       workboxPluginMode: 'InjectManifest',
-      // workboxOptions: {},
+      workboxOptions: {
+        // skipWaiting: true,
+        // clientsClaim: true
+        // importWorkboxFrom: 'local'
+        exclude: [swPath]
+      },
       manifest: {
         name: 'ANNotate',
         short_name: 'ANNotate',
         description: 'Protein Annotation using Recurrent Neural Networks',
-        display: 'standalone',
+        start_url: '/',
         background_color: '#ffffff',
         theme_color: '#ffffff',
+        display: 'standalone',
         icons: [
           {
-            'src': 'statics/android-chrome-192x192.png',
-            'sizes': '192x192',
-            'type': 'image/png'
+            src: 'statics/icons/icon-128x128.png',
+            sizes: '128x128',
+            type: 'image/png'
           },
           {
-            'src': 'statics/android-chrome-512x512.png',
-            'sizes': '512x512',
-            'type': 'image/png'
+            src: 'statics/icons/icon-192x192.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: 'statics/icons/icon-256x256.png',
+            sizes: '256x256',
+            type: 'image/png'
+          },
+          {
+            src: 'statics/icons/icon-384x384.png',
+            sizes: '384x384',
+            type: 'image/png'
+          },
+          {
+            src: 'statics/icons/icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png'
           }
         ]
       }
     },
+
     cordova: {
-      // id: 'org.cordova.quasar.app'
+      // id: 'in.hanl.scada',
+      // noIosLegacyBuildFlag: true, // uncomment only if you know what you are doing
+      iosStatusBarPadding: false, // add the dynamic top padding on iOS mobile devices
+      backButtonExit: true // Quasar handles app exit on mobile phone back button
     },
+
     electron: {
       // bundler: 'builder', // or 'packager'
+
       extendWebpack (cfg) {
-        // do something with Electron process Webpack cfg
+        // do something with Electron main process Webpack cfg
+        // chainWebpack also available besides this extendWebpack
       },
+
       packager: {
         // https://github.com/electron-userland/electron-packager/blob/master/docs/api.md#options
-
         // OS X / Mac App Store
         // appBundleId: '',
         // appCategoryType: '',
         // osxSign: '',
         // protocol: 'myapp://path',
-
-        // Window only
+        // Windows only
         // win32metadata: { ... }
       },
+
       builder: {
         // https://www.electron.build/configuration/configuration
-
-        // appId: 'quasar-app'
+        // appId: 'scada-iot-hmi'
       }
     }
   }
