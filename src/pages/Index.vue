@@ -4,7 +4,7 @@
       <img
         class="center"
         alt="ANNotate logo"
-        src="~assets/annotate-logo-long-v2-h92"
+        src="~assets/annotate-logo-long-v2-h92.png"
       />
     </div>
     <div class="row justify-center">
@@ -36,7 +36,7 @@
                 <q-item
                   v-for="fasta in examples"
                   :key="fasta"
-                  v-close-overlay
+                  v-close-popup
                   @click.native="loadSeq(fasta)"
                 >
                   <q-item-main

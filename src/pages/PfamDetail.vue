@@ -1,16 +1,26 @@
 <template>
   <q-page padding>
     <div class="row">
-      <img class="" alt="ANNotate logo" src="~assets/annotate-logo-long-282x92.png">
+      <img
+        class
+        alt="ANNotate logo"
+        src="~assets/annotate-logo-long-v2-h92.png"
+      />
     </div>
     <div class="row">
-      <div class="q-headline">Pfam Domain Prediction Results</div>
+      <div class="q-headline">
+        Pfam Domain Prediction Results
+      </div>
     </div>
     <div class="row">
-      <div class="q-my-sm q-title">{{ seqHeader }}</div>
+      <div class="q-my-sm q-title">
+        {{ seqHeader }}
+      </div>
     </div>
     <div class="row">
-      <div class="q-my-sm q-subheading">Sequence Length: {{ seqLength }} aa</div>
+      <div class="q-my-sm q-subheading">
+        Sequence Length: {{ seqLength }} aa
+      </div>
     </div>
     <ve-histogram
       :data="pfamChartData"
@@ -25,28 +35,36 @@
       row-key="start"
     >
       <!-- slot name syntax: body-cell-<column_name> -->
-      <q-td slot="body-cell-pfamAcc" slot-scope="props" :props="props">
+      <q-td
+        slot="body-cell-pfamAcc"
+        slot-scope="props"
+        :props="props"
+      >
         <q-btn
           icon-right="open_in_new"
           :label="props.value"
+          color="secondary"
+          flat
+          dense
           @click="familyLink(props.value)"
-          color="secondary"
-          flat dense
-        >
-        </q-btn>
+        ></q-btn>
       </q-td>
-      <q-td slot="body-cell-clanAcc" slot-scope="props" :props="props">
+      <q-td
+        slot="body-cell-clanAcc"
+        slot-scope="props"
+        :props="props"
+      >
         <q-btn
           icon-right="open_in_new"
           :label="props.value"
-          @click="clanLink(props.value)"
           color="secondary"
-          flat dense
-        >
-        </q-btn>
+          flat
+          dense
+          @click="clanLink(props.value)"
+        ></q-btn>
       </q-td>
     </q-table>
-    <hr class="q-hr q-my-xl">
+    <hr class="q-hr q-my-xl" />
     <!-- <q-input
       v-model="pfamClasses"
       float-label="Classes"
@@ -66,25 +84,31 @@
       v-model="pfamTopProbs"
       float-label="TopProbs"
       type="textarea"
-    /> -->
+    />-->
     <div class="row justify-center">
       <div class="col-xs-12 col-sm-10 col-lg-8">
         <div class="row no-wrap q-field-floating">
           <q-btn
+            id="example-btn"
             icon="keyboard_arrow_right"
             color="primary"
-            flat round dense
-            id="example-btn"
+            flat
+            round
+            dense
           >
             <q-popover>
-              <q-list link class="scroll" style="min-width: 100px; max-width: 90vw;">
+              <q-list
+                link
+                class="scroll"
+                style="min-width: 100px; max-width: 90vw;"
+              >
                 <q-list-header>Recent Submissions</q-list-header>
                 <q-item-separator />
                 <q-list-header>Example Proteins</q-list-header>
                 <q-item
                   v-for="fasta in examples"
                   :key="fasta"
-                  v-close-overlay
+                  v-close-popup
                   @click.native="loadSeq(fasta)"
                 >
                   <q-item-main
@@ -94,7 +118,9 @@
                     sublabel-lines="1"
                   />
                   <q-item-side right>
-                    <q-item-tile stamp>{{ fastaLength(fasta) }} aa</q-item-tile>
+                    <q-item-tile stamp>
+                      {{ fastaLength(fasta) }} aa
+                    </q-item-tile>
                   </q-item-side>
                 </q-item>
               </q-list>
@@ -103,7 +129,7 @@
           <q-field
             id="protein-field"
             class="col q-subheading"
-            label=""
+            label
             :helper="inputHelper"
             :error="$v.seq.$error"
             :error-label="errorMessages($v.seq)"
@@ -126,22 +152,27 @@
         id="predict"
         :label="predictLabel"
         color="primary"
-        @click='predict'
+        @click="predict"
       />
     </div>
   </q-page>
 </template>
 
 <style lang="stylus">
-#protein-field .q-input
-  font-family monospace
-//   height 200px
+#protein-field .q-input {
+  font-family: monospace;
+}
+
+// height 200px
 // .q-layout-page > .row + .row
-#predict
-  margin-top 1.5rem
-#example-btn
-  margin-top 21px
-  margin-right 5px
+#predict {
+  margin-top: 1.5rem;
+}
+
+#example-btn {
+  margin-top: 21px;
+  margin-right: 5px;
+}
 </style>
 
 <script>
@@ -154,7 +185,7 @@ import numerify from 'numerify'
 import { isFunction } from 'utils-lite'
 import { openURL } from 'quasar'
 
-const itemPoint = (color) => {
+const itemPoint = color => {
   return [
     '<span style="',
     `background-color:${color};`,
@@ -365,7 +396,9 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
           a[c] = a[c] ? a[c] + 1 : 1
           return a
         }, {})
-        return Object.keys(counts).sort((a, b) => counts[b] - counts[a]).map((v) => this.current.domainMap[v].pfamId)
+        return Object.keys(counts)
+          .sort((a, b) => counts[b] - counts[a])
+          .map(v => this.current.domainMap[v].pfamId)
       }
     },
     pfamChartData () {
@@ -409,25 +442,27 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
       if (!this.current) {
         return []
       } else {
-        return this.current.predictions[0].classes.reduce((a, v, i, c) => {
-          if (v !== 1) {
-            if (v !== c[i - 1]) {
-              // start a new row
-              a.push({
-                start: i + 1, // 1-indexed
-                end: i + 1,
-                pfamAcc: this.current.domainMap[v].pfamAcc,
-                pfamId: this.current.domainMap[v].pfamId,
-                clanAcc: this.current.domainMap[v].clanAcc,
-                clanId: this.current.domainMap[v].clanId,
-                pfamDesc: this.current.domainMap[v].pfamDesc
-              })
-            } else {
-              a.slice(-1)[0].end = i + 1
+        return this.current.predictions[0].classes
+          .reduce((a, v, i, c) => {
+            if (v !== 1) {
+              if (v !== c[i - 1]) {
+                // start a new row
+                a.push({
+                  start: i + 1, // 1-indexed
+                  end: i + 1,
+                  pfamAcc: this.current.domainMap[v].pfamAcc,
+                  pfamId: this.current.domainMap[v].pfamId,
+                  clanAcc: this.current.domainMap[v].clanAcc,
+                  clanId: this.current.domainMap[v].clanId,
+                  pfamDesc: this.current.domainMap[v].pfamDesc
+                })
+              } else {
+                a.slice(-1)[0].end = i + 1
+              }
             }
-          }
-          return a
-        }, []).filter(row => row.end - row.start > 3)
+            return a
+          }, [])
+          .filter(row => row.end - row.start > 3)
       }
     },
     inputCount () {
@@ -440,7 +475,7 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
         return 0
       }
       if (seq[0] === '>') {
-        return seq.match(/^\s*>/mg).length
+        return seq.match(/^\s*>/gm).length
       }
       const lines = seq.split('\n').reduce((a, v) => {
         // remove empty lines
@@ -528,10 +563,12 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
         return a
       }, [])
       if (lines.length === 1 || lines[0].length === lines[1].length) {
-        return [{
-          header: '>PROTEIN_00001',
-          seq: lines.join('')
-        }]
+        return [
+          {
+            header: '>PROTEIN_00001',
+            seq: lines.join('')
+          }
+        ]
       } else {
         return lines.map((v, i) => {
           return {
@@ -572,14 +609,24 @@ LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN `
       return this.fastaHeader(fasta).substring(this.fastaId(fasta).length)
     },
     fastaLine (fasta) {
-      return fasta.split('\n').slice(1).map(line => line.trim().toUpperCase()).join('')
+      return fasta
+        .split('\n')
+        .slice(1)
+        .map(line => line.trim().toUpperCase())
+        .join('')
     },
     fastaLength (fasta) {
       return this.fastaLine(fasta).length
     },
     loadSeq (fasta) {
       // console.log(fasta)
-      this.seq = '>PROTEIN_00001\n' + fasta.split('\n').slice(1).map(line => line.trim().toUpperCase()).join('\n')
+      this.seq =
+        '>PROTEIN_00001\n' +
+        fasta
+          .split('\n')
+          .slice(1)
+          .map(line => line.trim().toUpperCase())
+          .join('\n')
     },
     familyLink (pfamAcc) {
       openURL(`http://pfam.xfam.org/family/${pfamAcc}`)

@@ -47,14 +47,10 @@ module.exports = function (ctx) {
       'font-size',
       'axios',
       'analytics',
-      'feathers',
       'guards',
       'vuelidate',
       'vue-components',
-      // 'vuera'
-      'workbox',
-      'v-tooltip',
-      'vuejs-storage'
+      'workbox'
     ],
 
     css: ['app.styl'],
