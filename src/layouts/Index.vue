@@ -1,6 +1,6 @@
 <template>
   <q-layout view="lHh Lpr fff">
-    <q-header class="bg-white text-grey-9">
+    <q-header class="">
       <q-toolbar
         color="primary"
         elevated
@@ -9,18 +9,18 @@
           flat
           dense
           round
-          aria-label="Menu"
-          @click.native="$router.push('/')"
+          aria-label="Home"
+          @click="$router.push('/')"
         >
           <q-icon name="home" />
         </q-btn>
 
-        <q-toolbar-title
-          class="title"
-          @click.native="$router.push('/')"
-        >
+        <q-toolbar-title class="title">
           <q-item-label>ANNotate</q-item-label>
-          <q-item-label caption>
+          <q-item-label
+            class="text-caption"
+            lines="1"
+          >
             Protein Annotation using Neural Networks
           </q-item-label>
         </q-toolbar-title>
@@ -125,5 +125,8 @@ export default {
 .title {
   line-height: 2rem;
   font-size: 1.125rem;
+}
+.title .text-caption {
+  margin-top: 0px;
 }
 </style>
