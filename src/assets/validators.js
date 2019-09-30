@@ -54,6 +54,9 @@ export function isProtein () {
     // EDEVERVITIMQNPRQYKIPDWFLNRQKDVKDGKYSQVLANGLDNKLREDLERLKKIRAH
     // RGLRHFWGLRVRGQHTKTTGRRGRTVGVSKKK
     // `
+    if (!this.seq || typeof this.seq !== 'string') {
+      return true
+    }
     return value.split('\n').every(line => {
       line = line.trim().toUpperCase()
       // console.log('isProtein', line)

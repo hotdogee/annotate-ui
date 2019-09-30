@@ -323,26 +323,6 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
       isProtein: isProtein()
     }
   },
-  watch: {
-    isCreatePending (val, oldVal) {
-      // console.log('isCreatePending new: %s, old: %s', val, oldVal)
-      if (val === false) {
-        // get id
-        if (this.$store.getters['pfam/current']) {
-          this.$router.push({ path: `/pfam/${this.$store.getters['pfam/current']._id}` })
-        }
-      }
-    }
-  },
-  async created () {
-    // fetch the data when the view is created
-    if (!this.current || this.current._id !== this.$route.params.id) {
-      const { Pfam } = this.$FeathersVuex
-      await Pfam.get(this.$route.params.id)
-    }
-    // console.log(pfam.seq)
-    this.seq = `${this.current.header}\n${this.current.seq}`
-  },
   computed: {
     ...mapState('pfam', { isCreatePending: 'isCreatePending' }),
     ...mapGetters('pfam', { current: 'current' }),
@@ -578,6 +558,26 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
         })
       }
     }
+  },
+  watch: {
+    isCreatePending (val, oldVal) {
+      // console.log('isCreatePending new: %s, old: %s', val, oldVal)
+      if (val === false) {
+        // get id
+        if (this.$store.getters['pfam/current']) {
+          this.$router.push({ path: `/pfam/${this.$store.getters['pfam/current']._id}` })
+        }
+      }
+    }
+  },
+  async created () {
+    // fetch the data when the view is created
+    if (!this.current || this.current._id !== this.$route.params.id) {
+      const { Pfam } = this.$FeathersVuex
+      await Pfam.get(this.$route.params.id)
+    }
+    // console.log(pfam.seq)
+    this.seq = `${this.current.header}\n${this.current.seq}`
   },
   methods: {
     predict () {

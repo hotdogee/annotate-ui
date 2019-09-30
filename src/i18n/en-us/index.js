@@ -1,4 +1,6 @@
 export default {
+  // validation
+  isProtein: 'Invalid protein sequence.',
   failed: 'Action failed',
   success: 'Action was successful',
   Email: 'Email',

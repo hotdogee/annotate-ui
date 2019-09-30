@@ -24,55 +24,65 @@
             dense
             @click="disableTutorial"
           >
-            <q-popover>
+            <q-menu auto-close>
               <q-list
-                link
+                bordered
+                padding
                 class="scroll"
                 style="min-width: 100px; max-width: 90vw;"
               >
-                <q-list-header>Recent Submissions</q-list-header>
-                <q-item-separator />
-                <q-list-header>Example Proteins</q-list-header>
+                <q-item-label header>
+                  Recent Submissions
+                </q-item-label>
+                <q-separator spaced />
+                <q-item-label header>
+                  Example Proteins
+                </q-item-label>
                 <q-item
                   v-for="fasta in examples"
                   :key="fasta"
-                  v-close-popup
-                  @click.native="loadSeq(fasta)"
+                  clickable
+                  @click="loadSeq(fasta)"
                 >
-                  <q-item-main
-                    :label="fastaId(fasta)"
-                    label-lines="1"
-                    :sublabel="fastaDescription(fasta)"
-                    sublabel-lines="1"
-                  />
-                  <q-item-side right>
-                    <q-item-tile stamp>
+                  <q-item-section>
+                    <q-item-label lines="1">
+                      {{ fastaId(fasta) }}
+                    </q-item-label>
+                    <q-item-label
+                      caption
+                      lines="1"
+                    >
+                      {{ fastaDescription(fasta) }}
+                    </q-item-label>
+                  </q-item-section>
+
+                  <q-item-section
+                    side
+                    top
+                  >
+                    <q-item-label caption>
                       {{ fastaLength(fasta) }} aa
-                    </q-item-tile>
-                  </q-item-side>
+                    </q-item-label>
+                  </q-item-section>
                 </q-item>
               </q-list>
-            </q-popover>
+            </q-menu>
           </q-btn>
-          <q-field
-            id="protein-field"
-            class="col q-subheading"
-            label
-            :helper="seqHelper"
+          <q-input
+            v-model="seq"
+            class="col q-subheading protein-field"
+            clearable
+            autofocus
+            autocomplete="off"
+            label="Protein Sequence"
+            type="textarea"
+            rows="2"
+            autogrow
+            :hint="seqHelper"
             :error="$v.seq.$error"
-            :error-label="errorMessages($v.seq)"
-          >
-            <q-input
-              v-model="seq"
-              clearable
-              autofocus
-              autocomplete="off"
-              rows="2"
-              float-label="Protein Sequence"
-              type="textarea"
-              @blur="$v.seq.$touch"
-            />
-          </q-field>
+            :error-message="errorMessages($v.seq)"
+            @blur="$v.seq.$touch"
+          />
         </div>
       </div>
     </div>
@@ -93,7 +103,7 @@
 </template>
 
 <style lang="stylus">
-#protein-field .q-input {
+.protein-field {
   font-family: monospace;
 }
 
@@ -287,7 +297,7 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL
 
 */
 export default {
-  name: 'PageIndex',
+  name: 'pages.Index',
   data () {
     return {
       seq: '',
@@ -324,25 +334,6 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
       isProtein: isProtein()
     }
   },
-  watch: {
-    isCreatePending (val, oldVal) {
-      // console.log('isCreatePending new: %s, old: %s', val, oldVal)
-      if (val === false) {
-        // get id
-        if (this.$store.getters['pfam/current']) {
-          this.$router.push({ path: `/pfam/${this.$store.getters['pfam/current']._id}` })
-        }
-      }
-    }
-  },
-  async created () {
-    // display tooltip after 5 secs
-    setTimeout(() => {
-      if (this.showTutorial === true) {
-        this.showTip = true
-      }
-    }, 5000)
-  },
   computed: {
     ...mapState('pfam', { isCreatePending: 'isCreatePending' }),
     pfamCurrent () {
@@ -357,10 +348,13 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
       // case 1 standard fasta
       // case 2 no header single sequence
       // case 2 no header multi sequence
-      const seq = this.seq.trim()
-      if (!seq) {
+      // this.$debug(this.seq instanceof String) // always false
+      // this.$debug(Object.prototype.toString.call(this.seq))
+      // this.$debug(typeof this.seq) // 'string' or 'object'
+      if (!this.seq || typeof this.seq !== 'string') {
         return 0
       }
+      const seq = this.seq.trim()
       if (seq[0] === '>') {
         return seq.match(/^\s*>/gm).length
       }
@@ -466,6 +460,25 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
       }
     }
   },
+  watch: {
+    isCreatePending (val, oldVal) {
+      // console.log('isCreatePending new: %s, old: %s', val, oldVal)
+      if (val === false) {
+        // get id
+        if (this.$store.getters['pfam/current']) {
+          this.$router.push({ path: `/pfam/${this.$store.getters['pfam/current']._id}` })
+        }
+      }
+    }
+  },
+  async created () {
+    // display tooltip after 5 secs
+    setTimeout(() => {
+      if (this.showTutorial === true) {
+        this.showTip = true
+      }
+    }, 5000)
+  },
   methods: {
     disableTutorial () {
       this.showTutorial = false
@@ -529,6 +542,7 @@ LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN `
           if (type === 'apiErrors') {
             return this.$t(this.errors[vState.$params[type].field])
           } else {
+            // this.$debug(type, vState.$params[type]) // isProtein {type: "isProtein"}
             return this.$t(type, vState.$params[type])
           }
         }
