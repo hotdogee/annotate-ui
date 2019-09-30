@@ -1,6 +1,6 @@
 {
   "name": "annotate-ui",
-  "version": "0.0.2",
+  "version": "1.2.0",
   "description": "Protein Annotation using Recurrent Neural Network Models",
   "productName": "ANNotate",
   "cordovaId": "in.hanl.ann",

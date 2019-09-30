@@ -1,24 +1,17 @@
 <template>
   <q-page padding>
     <div class="row">
-      <img
-        class
-        alt="ANNotate logo"
-        src="~assets/annotate-logo-long-v2-h92.png"
-      />
-    </div>
-    <div class="row">
-      <div class="q-headline">
+      <div class="text-h5">
         Pfam Domain Prediction Results
       </div>
     </div>
     <div class="row">
-      <div class="q-my-sm q-title">
+      <div class="q-my-sm text-h6">
         {{ seqHeader }}
       </div>
     </div>
     <div class="row">
-      <div class="q-my-sm q-subheading">
+      <div class="q-my-sm text-subtitle1">
         Sequence Length: {{ seqLength }} aa
       </div>
     </div>
@@ -86,104 +79,26 @@
       type="textarea"
     />-->
     <div class="row justify-center">
-      <div class="col-xs-12 col-sm-10 col-lg-8">
-        <div class="row no-wrap q-field-floating">
-          <q-btn
-            id="example-btn"
-            icon="keyboard_arrow_right"
-            color="primary"
-            flat
-            round
-            dense
-          >
-            <q-popover>
-              <q-list
-                link
-                class="scroll"
-                style="min-width: 100px; max-width: 90vw;"
-              >
-                <q-list-header>Recent Submissions</q-list-header>
-                <q-item-separator />
-                <q-list-header>Example Proteins</q-list-header>
-                <q-item
-                  v-for="fasta in examples"
-                  :key="fasta"
-                  v-close-popup
-                  @click.native="loadSeq(fasta)"
-                >
-                  <q-item-main
-                    :label="fastaId(fasta)"
-                    label-lines="1"
-                    :sublabel="fastaDescription(fasta)"
-                    sublabel-lines="1"
-                  />
-                  <q-item-side right>
-                    <q-item-tile stamp>
-                      {{ fastaLength(fasta) }} aa
-                    </q-item-tile>
-                  </q-item-side>
-                </q-item>
-              </q-list>
-            </q-popover>
-          </q-btn>
-          <q-field
-            id="protein-field"
-            class="col q-subheading"
-            label
-            :helper="inputHelper"
-            :error="$v.seq.$error"
-            :error-label="errorMessages($v.seq)"
-          >
-            <q-input
-              v-model="seq"
-              clearable
-              autocomplete="off"
-              rows="2"
-              float-label="Protein Sequence"
-              type="textarea"
-              @blur="$v.seq.$touch"
-            />
-          </q-field>
-        </div>
-      </div>
-    </div>
-    <div class="row justify-center">
-      <q-btn
-        id="predict"
-        :label="predictLabel"
-        color="primary"
-        @click="predict"
+      <img
+        class="center"
+        alt="ANNotate logo"
+        src="~assets/annotate-logo-long-v2-h92.png"
       />
     </div>
+    <search-input :seq.sync="seq"></search-input>
   </q-page>
 </template>
 
-<style lang="stylus">
-#protein-field .q-input {
-  font-family: monospace;
-}
-
-// height 200px
-// .q-layout-page > .row + .row
-#predict {
-  margin-top: 1.5rem;
-}
-
-#example-btn {
-  margin-top: 21px;
-  margin-right: 5px;
-}
-</style>
+<style lang="stylus"></style>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
-import { maxLength } from 'vuelidate/lib/validators'
-import { isProtein } from 'assets/validators'
-import VeHistogram from 'v-charts/lib/histogram.common'
+// import { mapGetters } from 'vuex'
 import 'echarts/lib/component/legendScroll'
 import numerify from 'numerify'
-import { isFunction } from 'utils-lite'
 import { openURL } from 'quasar'
+import { isFunction } from 'utils-lite'
+import SearchInput from 'components/SearchInput'
+import VeHistogram from 'v-charts/lib/histogram.common'
 
 const itemPoint = color => {
   return [
@@ -222,29 +137,23 @@ const getFormated = (val, type, digit, defaultVal = '-') => {
 
 export default {
   name: 'PfamDetail',
-  components: { VeHistogram },
+  components: { VeHistogram, SearchInput },
   data () {
     return {
+      current: {
+        _id: '',
+        domainMap: {},
+        header: '',
+        predictions: [
+          {
+            classes: [],
+            top_classes: [],
+            top_probs: []
+          }
+        ],
+        seq: ''
+      },
       seq: '',
-      examples: [
-        `>tr|A6XGL2|A6XGL2_HUMAN Insulin OS=Homo sapiens OX=9606 GN=INS PE=1 SV=1
-MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAED
-LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN`,
-        `>sp|P62269|RS18_HUMAN 40S ribosomal protein S18 OS=Homo sapiens OX=9606 GN=RPS18 PE=1 SV=3
-MSLVIPEKFQHILRVLNTNIDGRRKIAFAITAIKGVGRRYAHVVLRKADIDLTKRAGELT
-EDEVERVITIMQNPRQYKIPDWFLNRQKDVKDGKYSQVLANGLDNKLREDLERLKKIRAH
-RGLRHFWGLRVRGQHTKTTGRRGRTVGVSKKK`,
-        `>sp|P04745|AMY1_HUMAN Alpha-amylase 1 OS=Homo sapiens OX=9606 GN=AMY1A PE=1 SV=2
-MKLFWLLFTIGFCWAQYSSNTQQGRTSIVHLFEWRWVDIALECERYLAPKGFGGVQVSPP
-NENVAIHNPFRPWWERYQPVSYKLCTRSGNEDEFRNMVTRCNNVGVRIYVDAVINHMCGN
-AVSAGTSSTCGSYFNPGSRDFPAVPYSGWDFNDGKCKTGSGDIENYNDATQVRDCRLSGL
-LDLALGKDYVRSKIAEYMNHLIDIGVAGFRIDASKHMWPGDIKAILDKLHNLNSNWFPEG
-SKPFIYQEVIDLGGEPIKSSDYFGNGRVTEFKYGAKLGTVIRKWNGEKMSYLKNWGEGWG
-FMPSDRALVFVDNHDNQRGHGAGGASILTFWDARLYKMAVGFMLAHPYGFTRVMSSYRWP
-RYFENGKDVNDWVGPPNDNGVTKEVTINPDTTCGNDWVCEHRWRQIRNMVNFRNVVDGQP
-FTNWYDNGSNQVAFGRGNRGFIVFNNDDWTFSLTLQTGLPAGTYCDVISGDKINGNCTGI
-KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
-      ],
       legend: {
         type: 'scroll',
         align: 'left',
@@ -317,15 +226,7 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
       ]
     }
   },
-  validations: {
-    seq: {
-      maxLength: maxLength(50000),
-      isProtein: isProtein()
-    }
-  },
   computed: {
-    ...mapState('pfam', { isCreatePending: 'isCreatePending' }),
-    ...mapGetters('pfam', { current: 'current' }),
     seqHeader () {
       if (!this.current) {
         return ''
@@ -444,208 +345,42 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
           }, [])
           .filter(row => row.end - row.start > 3)
       }
-    },
-    inputCount () {
-      // support 3 multi-sequence formats
-      // case 1 standard fasta
-      // case 2 no header single sequence
-      // case 2 no header multi sequence
-      const seq = this.seq.trim()
-      if (!seq) {
-        return 0
-      }
-      if (seq[0] === '>') {
-        return seq.match(/^\s*>/gm).length
-      }
-      const lines = seq.split('\n').reduce((a, v) => {
-        // remove empty lines
-        v = v.trim()
-        if (v) {
-          a.push(v)
-        }
-        return a
-      }, [])
-      if (lines.length === 1 || lines[0].length === lines[1].length) {
-        return 1
-      } else {
-        return lines.length
-      }
-    },
-    inputLength () {
-      // support 3 multi-sequence formats
-      // case 1 standard fasta
-      // case 2 no header single sequence
-      // case 2 no header multi sequence
-      const seq = this.seq.trim()
-      if (!seq) {
-        return 0
-      }
-      const lines = seq.split('\n').reduce((a, v) => {
-        // remove empty lines
-        v = v.trim()
-        if (v && v[0] !== '>') {
-          a.push(v)
-        }
-        return a
-      }, [])
-      return lines.join('').length
-    },
-    inputHelper () {
-      if (this.inputCount === 0) {
-        return 'Enter a single protein sequence with or without a header'
-      } else if (this.inputCount === 1) {
-        return `1 sequence (${this.inputLength} aa)`
-      } else {
-        return `${this.inputCount} sequences (${this.inputLength} aa total)`
-      }
-    },
-    predictLabel () {
-      if (this.inputCount === 0) {
-        return 'Submit'
-      } else if (this.inputCount === 1) {
-        return `Submit 1 sequence`
-      } else {
-        return `Submit ${this.inputCount} sequences`
-      }
-    },
-    seqList () {
-      const list = []
-      // support 3 multi-sequence formats
-      // case 1 standard fasta
-      // case 2 no header single sequence
-      // case 2 no header multi sequence
-      const seq = this.seq.trim()
-      if (!seq) {
-        return list
-      }
-      if (seq[0] === '>') {
-        return seq.split('\n').reduce((a, v) => {
-          // remove empty lines
-          v = v.trim()
-          if (v[0] === '>') {
-            const s = {
-              header: v,
-              seq: ''
-            }
-            a.push(s)
-          } else {
-            a.slice(-1)[0].seq += v
-          }
-          return a
-        }, [])
-      }
-      const lines = seq.split('\n').reduce((a, v) => {
-        // remove empty lines
-        v = v.trim()
-        if (v) {
-          a.push(v)
-        }
-        return a
-      }, [])
-      if (lines.length === 1 || lines[0].length === lines[1].length) {
-        return [
-          {
-            header: '>PROTEIN_00001',
-            seq: lines.join('')
-          }
-        ]
-      } else {
-        return lines.map((v, i) => {
-          return {
-            header: `>PROTEIN_${('' + (i + 1)).padStart(5, '0')}`,
-            seq: v
-          }
-        })
-      }
     }
   },
   watch: {
-    isCreatePending (val, oldVal) {
-      // console.log('isCreatePending new: %s, old: %s', val, oldVal)
-      if (val === false) {
-        // get id
-        if (this.$store.getters['pfam/current']) {
-          this.$router.push({ path: `/pfam/${this.$store.getters['pfam/current']._id}` })
-        }
-      }
-    }
+    // call again the method if the route changes
+    $route: 'fetchData'
   },
-  async created () {
-    // fetch the data when the view is created
-    if (!this.current || this.current._id !== this.$route.params.id) {
-      const { Pfam } = this.$FeathersVuex
-      await Pfam.get(this.$route.params.id)
-    }
-    // console.log(pfam.seq)
-    this.seq = `${this.current.header}\n${this.current.seq}`
+  created () {
+    this.fetchData()
   },
   methods: {
-    predict () {
-      // this.$v.seq.$touch()
-      if (!this.seq || this.$v.seq.$error) {
-        this.$q.notify('Please enter a valid protein sequence')
-        return
-      }
-      if (this.seqList.length > 1) {
-        this.$q.notify('Due to our limited resources, please submit only 1 sequence')
-        return
-      }
-      const { Pfam } = this.$FeathersVuex
-      const pfam = new Pfam(this.seqList[0])
-      pfam.create()
-    },
-    fastaId (fasta) {
-      /*
-      let seq = `>tr|A6XGL2|A6XGL2_HUMAN Insulin OS=Homo sapiens OX=9606 GN=INS PE=1 SV=1
- mALWMRLLPLLALLaLWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAED
-LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN `
-*/
-      return this.fastaHeader(fasta).split(' ')[0]
-    },
-    fastaHeader (fasta) {
-      return fasta.split('\n')[0].trim()
-    },
-    fastaDescription (fasta) {
-      return this.fastaHeader(fasta).substring(this.fastaId(fasta).length)
-    },
-    fastaLine (fasta) {
-      return fasta
-        .split('\n')
-        .slice(1)
-        .map(line => line.trim().toUpperCase())
-        .join('')
-    },
-    fastaLength (fasta) {
-      return this.fastaLine(fasta).length
-    },
-    loadSeq (fasta) {
-      // console.log(fasta)
-      this.seq =
-        '>PROTEIN_00001\n' +
-        fasta
-          .split('\n')
-          .slice(1)
-          .map(line => line.trim().toUpperCase())
-          .join('\n')
-    },
     familyLink (pfamAcc) {
       openURL(`http://pfam.xfam.org/family/${pfamAcc}`)
     },
     clanLink (clanAcc) {
       openURL(`http://pfam.xfam.org/clan/${clanAcc}`)
     },
-    errorMessages (vState) {
-      if (!vState.$error) {
-        return ''
-      }
-      for (let type in vState.$params) {
-        if (!vState[type]) {
-          if (type === 'apiErrors') {
-            return this.$t(this.errors[vState.$params[type].field])
-          } else {
-            return this.$t(type, vState.$params[type])
-          }
+    async fetchData () {
+      // document.getElementById('q-app').__vue__.$FeathersVuex.api.Pfam
+      const id = this.$route.params.id
+      this.$debug(id)
+      const { Pfam } = this.$FeathersVuex.api
+      try {
+        // try fetching from the store
+        let result = Pfam.getFromStore(id)
+        if (!result) {
+          // try fetch from server
+          result = await Pfam.get(id)
         }
+        this.current = result
+        this.seq = `${this.current.header}\n${this.current.seq}`
+      } catch (error) {
+        this.$q.notify({
+          position: 'center',
+          message: 'Result does not exist',
+          actions: [{ label: 'Dismiss' }]
+        })
       }
     }
   }

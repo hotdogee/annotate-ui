@@ -123,6 +123,7 @@ module.exports = function (ctx) {
       // gzip: true,
       // analyze: true,
       // extractCSS: false,
+      transpileDependencies: ['feathers-vuex'],
       extendWebpack (cfg) {
         cfg.module.rules.push({
           enforce: 'pre',
