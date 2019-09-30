@@ -1,10 +1,10 @@
 <template>
   <q-layout view="lHh Lpr fff">
-    <q-header class="">
-      <q-toolbar
-        color="primary"
-        elevated
-      >
+    <q-header
+      elevated
+      class=""
+    >
+      <q-toolbar color="primary">
         <q-btn
           flat
           dense
@@ -29,9 +29,9 @@
 
     <q-footer
       elevated
-      class="text-overline"
+      class="text-overline text-grey-5 bg-grey-9"
     >
-      <q-toolbar color="dark">
+      <q-toolbar>
         <div class="ellipsis">
           Made with
           <span class="text-red-14">❤</span> by Han Lin (hotdogee)
@@ -118,7 +118,7 @@ export default {
 
 <style>
 .copyright {
-  min-width: 7.041rem;
+  min-width: 4.041rem;
   white-space: nowrap;
   overflow: hidden;
 }
