@@ -32,10 +32,17 @@
       class="text-overline text-grey-5 bg-grey-9"
     >
       <q-toolbar>
-        <div class="ellipsis">
-          Made with
-          <span class="text-red-14">❤</span> by Han Lin (hotdogee)
-        </div>
+        <q-item-section>
+          <q-item-label lines="1">
+            Made with <span class="text-red-14">❤</span> by Han Lin (hotdogee)
+          </q-item-label>
+          <q-item-label
+            class="text-caption"
+            lines="1"
+          >
+            {{ version.ui }}
+          </q-item-label>
+        </q-item-section>
         <q-space></q-space>
         <div class="copyright">
           © {{ new Date().getFullYear() }}
