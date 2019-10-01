@@ -17,31 +17,63 @@
             dense
             @click="disableTutorial"
           >
-            <q-menu auto-close>
+            <q-menu>
               <q-list
                 bordered
                 padding
                 class="scroll"
                 style="min-width: 100px; max-width: 90vw;"
               >
-                <q-item-label header>
-                  Recent Submissions
-                </q-item-label>
+                <q-item>
+                  <q-item-section>
+                    <q-item-label
+                      id="recents__header"
+                      header
+                    >
+                      Recent Submissions
+                    </q-item-label>
+                  </q-item-section>
+                  <q-item-section
+                    top
+                    side
+                  >
+                    <div class="text-grey-8 q-gutter-xs">
+                      <q-btn
+                        class="gt-xs"
+                        size="12px"
+                        flat
+                        dense
+                        round
+                        icon="delete"
+                        @click="clearRecents"
+                      >
+                        <q-tooltip
+                          :delay="500"
+                          anchor="center left"
+                          self="center right"
+                        >
+                          Clear Recent Submissions
+                        </q-tooltip>
+                      </q-btn>
+                    </div>
+                  </q-item-section>
+                </q-item>
                 <q-item
                   v-for="fasta in recents"
                   :key="fasta"
+                  v-close-popup
                   clickable
                   @click="loadRecent(fasta)"
                 >
                   <q-item-section>
                     <q-item-label lines="1">
-                      {{ fastaId(fasta) }}
+                      {{ fastaHeader(fasta) }}
                     </q-item-label>
                     <q-item-label
                       caption
                       lines="1"
                     >
-                      {{ fastaDescription(fasta) }}
+                      {{ fastaLine(fasta) }}
                     </q-item-label>
                   </q-item-section>
 
@@ -61,6 +93,7 @@
                 <q-item
                   v-for="fasta in examples"
                   :key="fasta"
+                  v-close-popup
                   clickable
                   @click="loadSeq(fasta)"
                 >
@@ -449,6 +482,9 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
         this.recents.pop()
       }
     },
+    clearRecents () {
+      this.recents = []
+    },
     fastaId (fasta) {
       /*
       let seq = `>tr|A6XGL2|A6XGL2_HUMAN Insulin OS=Homo sapiens OX=9606 GN=INS PE=1 SV=1
@@ -529,6 +565,10 @@ LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN `
 #example-btn {
   margin-top: 21px;
   margin-right: 5px;
+}
+
+#recents__header {
+  padding: 0px;
 }
 </style>
 
