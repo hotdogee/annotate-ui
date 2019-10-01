@@ -57,6 +57,43 @@
         ></q-btn>
       </q-td>
     </q-table>
+    <br />
+    <q-table
+      title="Pfam32 Reference Data"
+      :data="pfam32ReferenceData"
+      :columns="pfam32ReferenceColumns"
+      row-key="start"
+    >
+      <!-- slot name syntax: body-cell-<column_name> -->
+      <q-td
+        slot="body-cell-pfamAcc"
+        slot-scope="props"
+        :props="props"
+      >
+        <q-btn
+          icon-right="open_in_new"
+          :label="props.value"
+          color="secondary"
+          flat
+          dense
+          @click="familyLink(props.value)"
+        ></q-btn>
+      </q-td>
+      <q-td
+        slot="body-cell-clanAcc"
+        slot-scope="props"
+        :props="props"
+      >
+        <q-btn
+          icon-right="open_in_new"
+          :label="props.value"
+          color="secondary"
+          flat
+          dense
+          @click="clanLink(props.value)"
+        ></q-btn>
+      </q-td>
+    </q-table>
     <hr class="q-hr q-my-xl" />
     <!-- <q-input
       v-model="pfamClasses"
@@ -223,7 +260,17 @@ export default {
         { name: 'clanAcc', label: 'Clan accession', field: 'clanAcc', sortable: true },
         { name: 'clanId', label: 'Clan ID', field: 'clanId', sortable: true },
         { name: 'pfamDesc', label: 'Pfam description', field: 'pfamDesc', sortable: false }
-      ]
+      ],
+      pfam32ReferenceColumns: [
+        { name: 'start', label: 'Start', field: 'start', sortable: true },
+        { name: 'end', label: 'End', field: 'end', sortable: true },
+        { name: 'pfamAcc', label: 'Pfam accession', field: 'pfamAcc', sortable: true },
+        { name: 'pfamId', label: 'Pfam ID', field: 'pfamId', sortable: true },
+        { name: 'clanAcc', label: 'Clan accession', field: 'clanAcc', sortable: true },
+        { name: 'clanId', label: 'Clan ID', field: 'clanId', sortable: true },
+        { name: 'pfamDesc', label: 'Pfam description', field: 'pfamDesc', sortable: false }
+      ],
+      pfam32ReferenceData: []
     }
   },
   computed: {
@@ -345,6 +392,33 @@ export default {
           }, [])
           .filter(row => row.end - row.start > 3)
       }
+    },
+    uniprotAcc () {
+      const header = this.current.header
+      if (!header || header.startsWith('>PROTEIN_')) return ''
+      // >PROTEIN_00001
+      // https://www.uniprot.org/uniprot/I6AQA9.fasta
+      // >tr|I6AQA9|I6AQA9_9BACT Alpha-mannosidase OS=Opitutaceae bacterium TAV1 OX=278956 GN=OpiT1DRAFT_01631 PE=4 SV=1
+      // parse uniprot format
+      // header.match(/^>tr\|(?<id>\w+)\|.+(?:SV=(?<sv>\d+))?/)
+      let mid = header.match(/^>tr\|(?<id>\w+)\|/)
+      if (mid) {
+        const msv = header.match(/SV=(?<sv>\d+)/)
+        if (msv) {
+          return `${mid.groups.id}.${msv.groups.sv}`
+        }
+        return `${mid.groups.id}.1`
+      }
+      // >I6AQA9.1
+      // >I6AQA9
+      mid = header.match(/^>(?<id>\w+)(?:\.(?<sv>\d+))?/)
+      if (mid) {
+        if (mid.groups.sv) {
+          return `${mid.groups.id}.${mid.groups.sv}`
+        }
+        return `${mid.groups.id}.1`
+      }
+      return ''
     }
   },
   watch: {
@@ -365,7 +439,7 @@ export default {
       // document.getElementById('q-app').__vue__.$FeathersVuex.api.Pfam
       const id = this.$route.params.id
       this.$debug(id)
-      const { Pfam } = this.$FeathersVuex.api
+      const { Pfam, Reference } = this.$FeathersVuex.api
       try {
         // try fetching from the store
         let result = Pfam.getFromStore(id)
@@ -381,6 +455,17 @@ export default {
           message: 'Result does not exist',
           actions: [{ label: 'Dismiss' }]
         })
+      }
+      // fetch reference
+      // document.getElementById('q-app').__vue__.$FeathersVuex.api.Reference
+      if (this.uniprotAcc) {
+        // try fetching from the store
+        let result = Reference.findInStore({ query: { seqAcc: this.uniprotAcc } })
+        if (result.total === 0) {
+          // try fetch from server
+          result = await Reference.find({ query: { seqAcc: this.uniprotAcc } })
+        }
+        this.pfam32ReferenceData = result.data
       }
     }
   }

@@ -2,30 +2,22 @@
 import feathersClient, { makeServicePlugin, BaseModel } from '../feathers-client'
 
 // Extend the base class
-class Pfam extends BaseModel {
-  // constructor (data, options) {
-  //   super(data, options)
-  // }
-  static modelName = 'Pfam'
+class Reference extends BaseModel {
+  static modelName = 'Reference'
   static instanceDefaults () {
     return {
       _id: '',
-      domainMap: {},
-      header: '',
-      predictions: [
-        {
-          classes: [],
-          top_classes: [],
-          top_probs: []
-        }
-      ],
-      seq: ''
+      seqAcc: '',
+      refName: '',
+      pfamAcc: '',
+      start: null,
+      end: null
     }
   }
 }
-const servicePath = 'pfam'
+const servicePath = 'references'
 const servicePlugin = makeServicePlugin({
-  Model: Pfam,
+  Model: Reference,
   service: feathersClient.api.service(servicePath),
   servicePath
 })
