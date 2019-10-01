@@ -27,6 +27,33 @@
                 <q-item-label header>
                   Recent Submissions
                 </q-item-label>
+                <q-item
+                  v-for="fasta in recents"
+                  :key="fasta"
+                  clickable
+                  @click="loadRecent(fasta)"
+                >
+                  <q-item-section>
+                    <q-item-label lines="1">
+                      {{ fastaId(fasta) }}
+                    </q-item-label>
+                    <q-item-label
+                      caption
+                      lines="1"
+                    >
+                      {{ fastaDescription(fasta) }}
+                    </q-item-label>
+                  </q-item-section>
+
+                  <q-item-section
+                    side
+                    top
+                  >
+                    <q-item-label caption>
+                      {{ fastaLength(fasta) }} aa
+                    </q-item-label>
+                  </q-item-section>
+                </q-item>
                 <q-separator spaced />
                 <q-item-label header>
                   Example Proteins
@@ -174,6 +201,7 @@ export default {
       version: '1568346315',
       showTip: false,
       showTutorial: true,
+      recents: [],
       examples: [
         `>tr|A6XGL2|A6XGL2_HUMAN Insulin OS=Homo sapiens OX=9606 GN=INS PE=1 SV=1
 MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAED
@@ -196,7 +224,7 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
     }
   },
   storage: {
-    keys: ['showTutorial'],
+    keys: ['showTutorial', 'recents'],
     namespace: 'protein-input'
   },
   validations: {
@@ -378,11 +406,14 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
         })
         return
       }
+      const data = this.seqList[0]
       const { Pfam } = this.$FeathersVuex.api
-      const pfam = new Pfam(this.seqList[0])
+      const pfam = new Pfam(data)
       // this.$debug(this.seqList[0])
       this.$ga.event('pfam', 'create', 'count', this.seqCount)
       this.$ga.event('pfam', 'create', 'length', this.seqLength)
+      // cache sequence in recents
+      this.addToRecents(`${data.header}\n${data.seq}`)
       try {
         const result = await pfam.create()
         this.$debug(result)
@@ -401,6 +432,21 @@ KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
           message: 'Server under maintenance',
           actions: [{ label: 'Dismiss' }]
         })
+      }
+    },
+    addToRecents (fasta) {
+      // LRU cache with limit = 10
+      const limit = 10
+      // check if already in cache
+      const i = this.recents.indexOf(fasta)
+      if (i !== -1) {
+        this.recents.splice(i, 1)
+      }
+      // add to beginning
+      this.recents.unshift(fasta)
+      while (this.recents.length > limit) {
+        // remove last item
+        this.recents.pop()
       }
     },
     fastaId (fasta) {
@@ -445,6 +491,10 @@ LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN `
             .map(line => line.trim().toUpperCase())
             .join('\n')
       )
+    },
+    loadRecent (fasta) {
+      // console.log(fasta)
+      this.$emit('update:seq', fasta)
     },
     errorMessages (vState) {
       if (!vState.$error) {
