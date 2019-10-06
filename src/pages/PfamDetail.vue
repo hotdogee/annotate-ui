@@ -61,7 +61,44 @@
     <q-table
       title="Pfam32 Reference Data"
       :data="pfam32ReferenceData"
-      :columns="pfam32ReferenceColumns"
+      :columns="pfamReferenceColumns"
+      row-key="start"
+    >
+      <!-- slot name syntax: body-cell-<column_name> -->
+      <q-td
+        slot="body-cell-pfamAcc"
+        slot-scope="props"
+        :props="props"
+      >
+        <q-btn
+          icon-right="open_in_new"
+          :label="props.value"
+          color="secondary"
+          flat
+          dense
+          @click="familyLink(props.value)"
+        ></q-btn>
+      </q-td>
+      <q-td
+        slot="body-cell-clanAcc"
+        slot-scope="props"
+        :props="props"
+      >
+        <q-btn
+          icon-right="open_in_new"
+          :label="props.value"
+          color="secondary"
+          flat
+          dense
+          @click="clanLink(props.value)"
+        ></q-btn>
+      </q-td>
+    </q-table>
+    <br />
+    <q-table
+      title="Pfam31 Reference Data"
+      :data="pfam31ReferenceData"
+      :columns="pfamReferenceColumns"
       row-key="start"
     >
       <!-- slot name syntax: body-cell-<column_name> -->
@@ -296,7 +333,7 @@ export default {
         { name: 'clanId', label: 'Clan ID', field: 'clanId', sortable: true },
         { name: 'pfamDesc', label: 'Pfam description', field: 'pfamDesc', sortable: false }
       ],
-      pfam32ReferenceColumns: [
+      pfamReferenceColumns: [
         { name: 'start', label: 'Start', field: 'start', sortable: true },
         { name: 'end', label: 'End', field: 'end', sortable: true },
         { name: 'pfamAcc', label: 'Pfam accession', field: 'pfamAcc', sortable: true },
@@ -305,6 +342,7 @@ export default {
         { name: 'clanId', label: 'Clan ID', field: 'clanId', sortable: true },
         { name: 'pfamDesc', label: 'Pfam description', field: 'pfamDesc', sortable: false }
       ],
+      pfam31ReferenceData: [],
       pfam32ReferenceData: []
     }
   },
@@ -501,6 +539,11 @@ export default {
           result = await Reference.find({ query: { seqAcc: this.uniprotAcc } })
         }
         this.pfam32ReferenceData = result.data
+          .filter(r => r.refName === 'pfam32')
+          .sort((a, b) => a.start - b.start)
+        this.pfam31ReferenceData = result.data
+          .filter(r => r.refName === 'pfam31')
+          .sort((a, b) => a.start - b.start)
       }
     }
   }
