@@ -389,17 +389,39 @@ export default {
         return JSON.stringify(this.current.domainMap, null, '')
       }
     },
+    labelMap () {
+      if (!this.current) {
+        return []
+      } else {
+        const probs = this.current.predictions[0].top_probs.flat()
+        const counts = this.current.predictions[0].top_classes.flat().reduce((a, c, i) => {
+          if (!Array.isArray(a[c])) {
+            a[c] = []
+          }
+          a[c].push(probs[i])
+          return a
+        }, {})
+        const arrAvg = arr => arr.reduce((a, b) => a + b, 0) / arr.length
+        const scores = Object.keys(counts).reduce((a, c) => {
+          a[c] = arrAvg(counts[c]) * 100
+          return a
+        }, {})
+        return Object.keys(scores)
+          .sort((a, b) => scores[b] - scores[a])
+          .reduce((a, c) => {
+            // eslint-disable-next-line standard/computed-property-even-spacing
+            a[this.current.domainMap[c].pfamId] = `${this.current.domainMap[c].pfamId}(${scores[
+              c
+            ].toFixed(1)})`
+            return a
+          }, {})
+      }
+    },
     sortedDomains () {
       if (!this.current) {
         return []
       } else {
-        const counts = this.current.predictions[0].top_classes.flat().reduce((a, c) => {
-          a[c] = a[c] ? a[c] + 1 : 1
-          return a
-        }, {})
-        return Object.keys(counts)
-          .sort((a, b) => counts[b] - counts[a])
-          .map(v => this.current.domainMap[v].pfamId)
+        return Object.keys(this.labelMap)
       }
     },
     pfamChartData () {
@@ -435,7 +457,8 @@ export default {
           yAxisName: ['Probability'],
           max: [1],
           min: [-1],
-          digit: 2
+          digit: 2,
+          labelMap: this.labelMap
         }
       }
     },
