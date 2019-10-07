@@ -405,16 +405,24 @@ export default {
         }, {})
         const arrAvg = arr => arr.reduce((a, b) => a + b, 0) / arr.length
         const scores = Object.keys(counts).reduce((a, c) => {
-          a[c] = arrAvg(counts[c]) * 100
+          if (c === '1') {
+            a[c] = 200
+          } else {
+            a[c] = arrAvg(counts[c]) * 100
+          }
           return a
         }, {})
         return Object.keys(scores)
           .sort((a, b) => scores[b] - scores[a])
           .reduce((a, c) => {
-            // eslint-disable-next-line standard/computed-property-even-spacing
-            a[this.current.domainMap[c].pfamId] = `${this.current.domainMap[c].pfamId}(${scores[
-              c
-            ].toFixed(1)})`
+            if (c === '1') {
+              a[this.current.domainMap[c].pfamId] = this.current.domainMap[c].pfamId
+            } else {
+              // eslint-disable-next-line standard/computed-property-even-spacing
+              a[this.current.domainMap[c].pfamId] = `${this.current.domainMap[c].pfamId}(${scores[
+                c
+              ].toFixed(1)})`
+            }
             return a
           }, {})
       }
