@@ -273,16 +273,18 @@ export default {
           // }
           let tpl = []
           tpl.push(`${items[0].dataIndex + 1}: ${items[0].name}<br>`)
-          items.forEach(item => {
-            if (isNaN(item.value)) return
-            const seriesName = item.seriesName
-            const type = 'percent'
-            const digit = 2
-            tpl.push(itemPoint(item.color))
-            tpl.push(`${seriesName}: `)
-            tpl.push(getFormated(item.value, type, digit))
-            tpl.push('<br>')
-          })
+          items
+            .sort((a, b) => Math.abs(b.value || 0) - Math.abs(a.value || 0))
+            .forEach(item => {
+              if (isNaN(item.value)) return
+              const seriesName = item.seriesName
+              const type = 'percent'
+              const digit = 2
+              tpl.push(itemPoint(item.color))
+              tpl.push(`${seriesName}: `)
+              tpl.push(getFormated(item.value, type, digit))
+              tpl.push('<br>')
+            })
 
           return tpl.join('')
         }
