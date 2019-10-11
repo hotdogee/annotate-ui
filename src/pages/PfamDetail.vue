@@ -25,6 +25,7 @@
       :title="pfamTableTitle"
       :data="pfamTableData"
       :columns="pfamTableColumns"
+      :pagination.sync="pagination"
       row-key="start"
     >
       <!-- slot name syntax: body-cell-<column_name> -->
@@ -62,6 +63,7 @@
       title="Pfam32 Reference Data"
       :data="pfam32ReferenceData"
       :columns="pfamReferenceColumns"
+      :pagination.sync="pagination"
       row-key="start"
     >
       <!-- slot name syntax: body-cell-<column_name> -->
@@ -99,6 +101,7 @@
       title="Pfam31 Reference Data"
       :data="pfam31ReferenceData"
       :columns="pfamReferenceColumns"
+      :pagination.sync="pagination"
       row-key="start"
     >
       <!-- slot name syntax: body-cell-<column_name> -->
@@ -290,6 +293,13 @@ export default {
         }
       },
       pfamTableTitle: '', // 'Predicted Pfam Regions'
+      pagination: {
+        // sortBy: 'name',
+        // descending: false,
+        // page: 2,
+        rowsPerPage: 10
+        // rowsNumber: xx if getting data from a server
+      },
       pfamTableColumns: [
         // column Object definition
         // {
@@ -333,7 +343,8 @@ export default {
         { name: 'pfamId', label: 'Pfam ID', field: 'pfamId', sortable: true },
         { name: 'clanAcc', label: 'Clan accession', field: 'clanAcc', sortable: true },
         { name: 'clanId', label: 'Clan ID', field: 'clanId', sortable: true },
-        { name: 'pfamDesc', label: 'Pfam description', field: 'pfamDesc', sortable: false }
+        { name: 'pfamDesc', label: 'Pfam description', field: 'pfamDesc', sortable: false },
+        { name: 'score', label: 'Score', field: 'score', sortable: true }
       ],
       pfamReferenceColumns: [
         { name: 'start', label: 'Start', field: 'start', sortable: true },
@@ -391,9 +402,9 @@ export default {
         return JSON.stringify(this.current.domainMap, null, '')
       }
     },
-    labelMap () {
+    domainScores () {
       if (!this.current) {
-        return []
+        return {}
       } else {
         const probs = this.current.predictions[0].top_probs.flat()
         const counts = this.current.predictions[0].top_classes.flat().reduce((a, c, i) => {
@@ -412,6 +423,14 @@ export default {
           }
           return a
         }, {})
+        return scores
+      }
+    },
+    labelMap () {
+      if (!this.current) {
+        return {}
+      } else {
+        const scores = this.domainScores
         return Object.keys(scores)
           .sort((a, b) => scores[b] - scores[a])
           .reduce((a, c) => {
@@ -476,27 +495,107 @@ export default {
       if (!this.current) {
         return []
       } else {
-        return this.current.predictions[0].classes
-          .reduce((a, v, i, c) => {
-            if (v !== 1) {
-              if (v !== c[i - 1]) {
-                // start a new row
+        // const data = this.current.predictions[0].classes
+        //   .reduce((a, v, i, c) => {
+        //     if (v !== 1) {
+        //       if (v !== c[i - 1]) {
+        //         // start a new row
+        //         a.push({
+        //           start: i + 1, // 1-indexed
+        //           end: i + 1,
+        //           pfamAcc: this.current.domainMap[v].pfamAcc,
+        //           pfamId: this.current.domainMap[v].pfamId,
+        //           clanAcc: this.current.domainMap[v].clanAcc,
+        //           clanId: this.current.domainMap[v].clanId,
+        //           pfamDesc: this.current.domainMap[v].pfamDesc,
+        //           score: this.domainScores[v].toFixed(1)
+        //         })
+        //       } else {
+        //         a.slice(-1)[0].end = i + 1
+        //       }
+        //     }
+        //     return a
+        //   }, [])
+        //   .filter(row => row.end - row.start > 3)
+        // list predictions with score > 1.0
+        const PROB_MINIMUM = 0.008
+        const SCORE_THRESHOLD = 0.5
+        const domainThresholds = Object.keys(this.domainScores).reduce((a, c) => {
+          const score = this.domainScores[c]
+          if (score > 100 || score < PROB_MINIMUM * 100) {
+            a[c] = 999
+          } else if (score > 50) {
+            a[c] = 0.5
+          } else {
+            a[c] = (score * SCORE_THRESHOLD) / 100
+          }
+          return a
+        }, {})
+        // this.$debug(domainThresholds)
+        // regions of the same class will be linked if the gap is less than LINK_THRESHOLD
+        const LINK_THRESHOLD = 4 // gap of 0, 1, 2, 3 will be linked
+        const MIN_REGION_LENGTH = 4
+        const topClasses = this.current.predictions[0].top_classes
+        const topProbs = this.current.predictions[0].top_probs
+        return topClasses
+          .reduce((a, classes, i) => {
+            const [c1, c2] = classes
+            const p2 = topProbs[i][1]
+            // start condition: prob over threshold
+            let c = c1
+            if (c1 === 1 && p2 > domainThresholds[c2]) {
+              c = c2
+            }
+            a[i] = c
+            return a
+          }, [])
+          .reduce((a, c, i, d) => {
+            const recentRegion = a.slice(-1)[0]
+            if (!recentRegion && c !== 1) {
+              // first region
+              a.push({
+                start: i + 1, // 1-indexed
+                end: i + 1,
+                pfamAcc: this.current.domainMap[c].pfamAcc,
+                pfamId: this.current.domainMap[c].pfamId,
+                clanAcc: this.current.domainMap[c].clanAcc,
+                clanId: this.current.domainMap[c].clanId,
+                pfamDesc: this.current.domainMap[c].pfamDesc,
+                score: this.domainScores[c].toFixed(1),
+                class: c
+              })
+            } else if (!!recentRegion && c === recentRegion.class) {
+              if (i - recentRegion.end < LINK_THRESHOLD) {
+                recentRegion.end = i + 1
+              } else {
                 a.push({
                   start: i + 1, // 1-indexed
                   end: i + 1,
-                  pfamAcc: this.current.domainMap[v].pfamAcc,
-                  pfamId: this.current.domainMap[v].pfamId,
-                  clanAcc: this.current.domainMap[v].clanAcc,
-                  clanId: this.current.domainMap[v].clanId,
-                  pfamDesc: this.current.domainMap[v].pfamDesc
+                  pfamAcc: this.current.domainMap[c].pfamAcc,
+                  pfamId: this.current.domainMap[c].pfamId,
+                  clanAcc: this.current.domainMap[c].clanAcc,
+                  clanId: this.current.domainMap[c].clanId,
+                  pfamDesc: this.current.domainMap[c].pfamDesc,
+                  score: this.domainScores[c].toFixed(1),
+                  class: c
                 })
-              } else {
-                a.slice(-1)[0].end = i + 1
               }
+            } else if (!!recentRegion && c !== 1 && c !== recentRegion.class) {
+              a.push({
+                start: i + 1, // 1-indexed
+                end: i + 1,
+                pfamAcc: this.current.domainMap[c].pfamAcc,
+                pfamId: this.current.domainMap[c].pfamId,
+                clanAcc: this.current.domainMap[c].clanAcc,
+                clanId: this.current.domainMap[c].clanId,
+                pfamDesc: this.current.domainMap[c].pfamDesc,
+                score: this.domainScores[c].toFixed(1),
+                class: c
+              })
             }
             return a
           }, [])
-          .filter(row => row.end - row.start > 3)
+          .filter(row => row.end - row.start > MIN_REGION_LENGTH - 2)
       }
     },
     uniprotAcc () {
