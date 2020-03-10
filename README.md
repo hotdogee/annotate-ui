@@ -5,8 +5,8 @@ Protein Annotation using Recurrent Neural Network Models
 # Release workflow
 
 ```bash
-npm run release
-git describe
+npm run release # runs standard-version
+git describe # prints version
 git push --follow-tags origin master
 ```
 
@@ -15,6 +15,53 @@ git push --follow-tags origin master
   - uses conventional-changelog to update CHANGELOG.md
   - commits package.json (et al.) and CHANGELOG.md
   - tags a new release
+
+# Committing code
+
+## Practical tips
+
+### Commit message format
+
+`type(scopes): message`
+
+Examples:
+
+- `fix(ui): fixed user login`
+- `chore(api): update libs`
+- `feat(api): added users service`
+
+### Command Line Tools: [commitizen](http://commitizen.github.io/cz-cli/)
+
+- Use `npx git-cz` to get an interactive list of types and scopes to choose from
+
+### VSCode Tools: [vscode-commitizen](https://marketplace.visualstudio.com/items?itemName=KnisterPeter.vscode-commitizen)
+
+- Open the command panel (F1) and type 'conventional commit'.
+- Select the command and answer the questions afterwards (type, scope, subject, body, breaking changes, closed issues).
+
+## List of types
+
+```
+chore:    Other changes that don't modify src or test files
+feat:     A new feature
+fix:      A bug fix
+docs:     Documentation only changes
+WIP:      Work in progress
+style:    Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+refactor: A code change that neither fixes a bug nor adds a feature
+build:    Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)
+ci:       Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)
+revert:   Reverts a previous commit
+perf:     A code change that improves performance
+test:     Adding missing tests or correcting existing tests
+```
+
+## Why
+
+- Used for automated version generation and changelog generation
+- [Conventional Commits](https://www.conventionalcommits.org)
+- [Conventional Changelog](https://github.com/conventional-changelog/conventional-changelog)
+  - [Development: How to adapt a custom conventional changelog](https://medium.com/vlad-arbatov/development-how-to-adapt-a-custom-conventional-changelog-33ff3b13c832)
 
 # Development
 
