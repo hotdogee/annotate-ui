@@ -12,6 +12,13 @@
       content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width<% if (htmlWebpackPlugin.options.ctx.mode.cordova || htmlWebpackPlugin.options.ctx.mode.capacitor) { %>, viewport-fit=cover<% } %>"
     />
 
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ann.hanl.in/" />
+    <meta property="og:title" content="<%= htmlWebpackPlugin.options.productName %>" />
+    <meta property="og:description" content="<%= htmlWebpackPlugin.options.productDescription %>" />
+    <meta property="og:image" content="statics/og-image-308x215.jpg" />
+
     <link rel="icon" type="image/png" href="statics/app-logo-128x128.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="statics/icons/favicon-16x16.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="statics/icons/favicon-32x32.png" />
