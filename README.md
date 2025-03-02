@@ -2,6 +2,10 @@
 
 Protein Annotation using Recurrent Neural Network Models
 
+Fast and accurate per aa annotation of protein sequences with TensorFlow Serving back end.
+Annotate proteins with sequence length up to 40k amino acids.
+Pfam, GO, HPO, DO annotations.
+
 # Release workflow
 
 ```bash
