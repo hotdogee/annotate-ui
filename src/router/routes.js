@@ -1,21 +1,20 @@
 const routes = [
   {
     path: '/',
-    component: () => import('layouts/Index.vue'),
+    component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: 'pfam/:id', component: () => import('pages/PfamDetail.vue') },
-      { path: 'pfam', component: () => import('pages/Index.vue') },
-      { path: '', component: () => import('pages/Index.vue') }
-    ]
-  }
-]
+      { path: 'pfam', component: () => import('pages/IndexPage.vue') },
+      { path: '', component: () => import('pages/IndexPage.vue') },
+    ],
+  },
 
-// Always leave this as last one
-if (process.env.MODE !== 'ssr') {
-  routes.push({
-    path: '*',
-    component: () => import('pages/Error404.vue')
-  })
-}
+  // Always leave this as last one,
+  // but you can also remove it
+  {
+    path: '/:catchAll(.*)*',
+    component: () => import('pages/ErrorNotFound.vue'),
+  },
+]
 
 export default routes

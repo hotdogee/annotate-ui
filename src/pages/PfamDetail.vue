@@ -1,9 +1,7 @@
 <template>
   <q-page padding>
     <div class="row">
-      <div class="text-h5">
-        Pfam Domain Prediction Results
-      </div>
+      <div class="text-h5">Pfam Domain Prediction Results</div>
     </div>
     <div class="row">
       <div class="q-my-sm text-h6">
@@ -11,9 +9,7 @@
       </div>
     </div>
     <div class="row">
-      <div class="q-my-sm text-subtitle1">
-        Sequence Length: {{ seqLength }} aa
-      </div>
+      <div class="q-my-sm text-subtitle1">Sequence Length: {{ seqLength }} aa</div>
     </div>
     <ve-histogram
       :data="pfamChartData"
@@ -25,114 +21,100 @@
       :title="pfamTableTitle"
       :data="pfamTableData"
       :columns="pfamTableColumns"
-      :pagination.sync="pagination"
+      v-model:pagination="pagination"
       row-key="start"
     >
       <!-- slot name syntax: body-cell-<column_name> -->
-      <q-td
-        slot="body-cell-pfamAcc"
-        slot-scope="props"
-        :props="props"
-      >
-        <q-btn
-          icon-right="open_in_new"
-          :label="props.value"
-          color="secondary"
-          flat
-          dense
-          @click="familyLink(props.value)"
-        ></q-btn>
-      </q-td>
-      <q-td
-        slot="body-cell-clanAcc"
-        slot-scope="props"
-        :props="props"
-      >
-        <q-btn
-          icon-right="open_in_new"
-          :label="props.value"
-          color="secondary"
-          flat
-          dense
-          @click="clanLink(props.value)"
-        ></q-btn>
-      </q-td>
+      <template #body-cell-pfamAcc="props">
+        <q-td :props="props">
+          <q-btn
+            icon-right="open_in_new"
+            :label="props.value"
+            color="secondary"
+            flat
+            dense
+            @click="familyLink(props.value)"
+          ></q-btn>
+        </q-td>
+      </template>
+      <template #body-cell-clanAcc="props">
+        <q-td :props="props">
+          <q-btn
+            icon-right="open_in_new"
+            :label="props.value"
+            color="secondary"
+            flat
+            dense
+            @click="clanLink(props.value)"
+          ></q-btn>
+        </q-td>
+      </template>
     </q-table>
     <br />
     <q-table
       title="Pfam32 Reference Data"
       :data="pfam32ReferenceData"
       :columns="pfamReferenceColumns"
-      :pagination.sync="pagination"
+      v-model:pagination="pagination"
       row-key="start"
     >
-      <!-- slot name syntax: body-cell-<column_name> -->
-      <q-td
-        slot="body-cell-pfamAcc"
-        slot-scope="props"
-        :props="props"
-      >
-        <q-btn
-          icon-right="open_in_new"
-          :label="props.value"
-          color="secondary"
-          flat
-          dense
-          @click="familyLink(props.value)"
-        ></q-btn>
-      </q-td>
-      <q-td
-        slot="body-cell-clanAcc"
-        slot-scope="props"
-        :props="props"
-      >
-        <q-btn
-          icon-right="open_in_new"
-          :label="props.value"
-          color="secondary"
-          flat
-          dense
-          @click="clanLink(props.value)"
-        ></q-btn>
-      </q-td>
+      <template #body-cell-pfamAcc="props">
+        <q-td :props="props">
+          <q-btn
+            icon-right="open_in_new"
+            :label="props.value"
+            color="secondary"
+            flat
+            dense
+            @click="familyLink(props.value)"
+          ></q-btn>
+        </q-td>
+      </template>
+      <template #body-cell-clanAcc="props">
+        <q-td :props="props">
+          <q-btn
+            icon-right="open_in_new"
+            :label="props.value"
+            color="secondary"
+            flat
+            dense
+            @click="clanLink(props.value)"
+          ></q-btn>
+        </q-td>
+      </template>
     </q-table>
     <br />
     <q-table
       title="Pfam31 Reference Data"
       :data="pfam31ReferenceData"
       :columns="pfamReferenceColumns"
-      :pagination.sync="pagination"
+      v-model:pagination="pagination"
       row-key="start"
     >
-      <!-- slot name syntax: body-cell-<column_name> -->
-      <q-td
-        slot="body-cell-pfamAcc"
-        slot-scope="props"
-        :props="props"
-      >
-        <q-btn
-          icon-right="open_in_new"
-          :label="props.value"
-          color="secondary"
-          flat
-          dense
-          @click="familyLink(props.value)"
-        ></q-btn>
-      </q-td>
-      <q-td
-        slot="body-cell-clanAcc"
-        slot-scope="props"
-        :props="props"
-      >
-        <q-btn
-          icon-right="open_in_new"
-          :label="props.value"
-          color="secondary"
-          flat
-          dense
-          @click="clanLink(props.value)"
-        ></q-btn>
-      </q-td>
+      <template #body-cell-pfamAcc="props">
+        <q-td :props="props">
+          <q-btn
+            icon-right="open_in_new"
+            :label="props.value"
+            color="secondary"
+            flat
+            dense
+            @click="familyLink(props.value)"
+          ></q-btn>
+        </q-td>
+      </template>
+      <template #body-cell-clanAcc="props">
+        <q-td :props="props">
+          <q-btn
+            icon-right="open_in_new"
+            :label="props.value"
+            color="secondary"
+            flat
+            dense
+            @click="clanLink(props.value)"
+          ></q-btn>
+        </q-td>
+      </template>
     </q-table>
     <hr class="q-hr q-my-xl" />
     <!-- <q-input
@@ -156,13 +138,9 @@
       type="textarea"
     />-->
     <div class="row justify-center">
-      <img
-        class="center"
-        alt="ANNotate logo"
-        src="~assets/annotate-logo-long-v2-h92.png"
-      />
+      <img class="center" alt="ANNotate logo" src="~assets/annotate-logo-long-v2-h92.png" />
     </div>
-    <search-input :seq.sync="seq"></search-input>
+    <search-input v-model:seq="seq"></search-input>
   </q-page>
 </template>
 
@@ -177,7 +155,7 @@ import { isFunction } from 'utils-lite'
 import SearchInput from 'components/SearchInput'
 import VeHistogram from 'v-charts/lib/histogram.common'
 
-const itemPoint = color => {
+const itemPoint = (color) => {
   return [
     '<span style="',
     `background-color:${color};`,
@@ -186,7 +164,7 @@ const itemPoint = color => {
     'height: 10px;',
     'border-radius: 50%;',
     'margin-right:2px;',
-    '"></span>'
+    '"></span>',
   ].join('')
 }
 
@@ -215,7 +193,7 @@ const getFormated = (val, type, digit, defaultVal = '-') => {
 export default {
   name: 'PfamDetail',
   components: { VeHistogram, SearchInput },
-  data () {
+  data() {
     return {
       current: {
         _id: '',
@@ -225,20 +203,20 @@ export default {
           {
             classes: [],
             top_classes: [],
-            top_probs: []
-          }
+            top_probs: [],
+          },
         ],
-        seq: ''
+        seq: '',
       },
       seq: '',
       legend: {
         type: 'scroll',
         align: 'left',
-        left: 10
+        left: 10,
       },
       tooltip: {
         trigger: 'axis',
-        formatter (items) {
+        formatter(items) {
           // {
           //   componentType: 'series',
           //   // Series type
@@ -278,7 +256,7 @@ export default {
           tpl.push(`${items[0].dataIndex + 1}: ${items[0].name}<br>`)
           items
             .sort((a, b) => Math.abs(b.value || 0) - Math.abs(a.value || 0))
-            .forEach(item => {
+            .forEach((item) => {
               if (isNaN(item.value)) return
               const seriesName = item.seriesName
               const type = 'percent'
@@ -290,14 +268,14 @@ export default {
             })
 
           return tpl.join('')
-        }
+        },
       },
       pfamTableTitle: '', // 'Predicted Pfam Regions'
       pagination: {
         // sortBy: 'name',
         // descending: false,
         // page: 2,
-        rowsPerPage: 10
+        rowsPerPage: 10,
         // rowsNumber: xx if getting data from a server
       },
       pfamTableColumns: [
@@ -344,7 +322,7 @@ export default {
         { name: 'clanAcc', label: 'Clan accession', field: 'clanAcc', sortable: true },
         { name: 'clanId', label: 'Clan ID', field: 'clanId', sortable: true },
         { name: 'pfamDesc', label: 'Pfam description', field: 'pfamDesc', sortable: false },
-        { name: 'score', label: 'Score', field: 'score', sortable: true }
+        { name: 'score', label: 'Score', field: 'score', sortable: true },
       ],
       pfamReferenceColumns: [
         { name: 'start', label: 'Start', field: 'start', sortable: true },
@@ -353,56 +331,56 @@ export default {
         { name: 'pfamId', label: 'Pfam ID', field: 'pfamId', sortable: true },
         { name: 'clanAcc', label: 'Clan accession', field: 'clanAcc', sortable: true },
         { name: 'clanId', label: 'Clan ID', field: 'clanId', sortable: true },
-        { name: 'pfamDesc', label: 'Pfam description', field: 'pfamDesc', sortable: false }
+        { name: 'pfamDesc', label: 'Pfam description', field: 'pfamDesc', sortable: false },
       ],
       pfam31ReferenceData: [],
-      pfam32ReferenceData: []
+      pfam32ReferenceData: [],
     }
   },
   computed: {
-    seqHeader () {
+    seqHeader() {
       if (!this.current) {
         return ''
       } else {
         return this.current.header
       }
     },
-    seqLength () {
+    seqLength() {
       if (!this.current) {
         return ''
       } else {
         return this.current.seq.length
       }
     },
-    pfamClasses () {
+    pfamClasses() {
       if (!this.current) {
         return ''
       } else {
         return JSON.stringify(this.current.predictions[0].classes, null, '')
       }
     },
-    pfamTopClasses () {
+    pfamTopClasses() {
       if (!this.current) {
         return ''
       } else {
         return JSON.stringify(this.current.predictions[0].top_classes, null, '')
       }
     },
-    pfamTopProbs () {
+    pfamTopProbs() {
       if (!this.current) {
         return ''
       } else {
         return JSON.stringify(this.current.predictions[0].top_probs, null, '')
       }
     },
-    pfamDomainMap () {
+    pfamDomainMap() {
       if (!this.current) {
         return ''
       } else {
         return JSON.stringify(this.current.domainMap, null, '')
       }
     },
-    domainScores () {
+    domainScores() {
       if (!this.current) {
         return {}
       } else {
@@ -414,7 +392,7 @@ export default {
           a[c].push(probs[i])
           return a
         }, {})
-        const arrAvg = arr => arr.reduce((a, b) => a + b, 0) / arr.length
+        const arrAvg = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length
         const scores = Object.keys(counts).reduce((a, c) => {
           if (c === '1') {
             a[c] = 200
@@ -426,7 +404,7 @@ export default {
         return scores
       }
     },
-    labelMap () {
+    labelMap() {
       if (!this.current) {
         return {}
       } else {
@@ -437,7 +415,6 @@ export default {
             if (c === '1') {
               a[this.current.domainMap[c].pfamId] = this.current.domainMap[c].pfamId
             } else {
-              // eslint-disable-next-line standard/computed-property-even-spacing
               a[this.current.domainMap[c].pfamId] = `${this.current.domainMap[c].pfamId}(${scores[
                 c
               ].toFixed(1)})`
@@ -446,14 +423,14 @@ export default {
           }, {})
       }
     },
-    sortedDomains () {
+    sortedDomains() {
       if (!this.current) {
         return []
       } else {
         return Object.keys(this.labelMap)
       }
     },
-    pfamChartData () {
+    pfamChartData() {
       if (!this.current) {
         return {}
       } else {
@@ -472,11 +449,11 @@ export default {
         // console.log([aaKey].concat(this.sortedDomains))
         return {
           columns: [aaKey].concat(this.sortedDomains),
-          rows
+          rows,
         }
       }
     },
-    pfamChartSettings () {
+    pfamChartSettings() {
       if (!this.current) {
         return {}
       } else {
@@ -487,11 +464,11 @@ export default {
           max: [1],
           min: [-1],
           digit: 2,
-          labelMap: this.labelMap
+          labelMap: this.labelMap,
         }
       }
     },
-    pfamTableData () {
+    pfamTableData() {
       if (!this.current) {
         return []
       } else {
@@ -549,7 +526,7 @@ export default {
             a[i] = c
             return a
           }, [])
-          .reduce((a, c, i, d) => {
+          .reduce((a, c, i) => {
             const recentRegion = a.slice(-1)[0]
             if (!recentRegion && c !== 1) {
               // first region
@@ -562,7 +539,7 @@ export default {
                 clanId: this.current.domainMap[c].clanId,
                 pfamDesc: this.current.domainMap[c].pfamDesc,
                 score: this.domainScores[c].toFixed(1),
-                class: c
+                class: c,
               })
             } else if (!!recentRegion && c === recentRegion.class) {
               if (i - recentRegion.end < LINK_THRESHOLD) {
@@ -577,7 +554,7 @@ export default {
                   clanId: this.current.domainMap[c].clanId,
                   pfamDesc: this.current.domainMap[c].pfamDesc,
                   score: this.domainScores[c].toFixed(1),
-                  class: c
+                  class: c,
                 })
               }
             } else if (!!recentRegion && c !== 1 && c !== recentRegion.class) {
@@ -590,15 +567,15 @@ export default {
                 clanId: this.current.domainMap[c].clanId,
                 pfamDesc: this.current.domainMap[c].pfamDesc,
                 score: this.domainScores[c].toFixed(1),
-                class: c
+                class: c,
               })
             }
             return a
           }, [])
-          .filter(row => row.end - row.start > MIN_REGION_LENGTH - 2)
+          .filter((row) => row.end - row.start > MIN_REGION_LENGTH - 2)
       }
     },
-    uniprotAcc () {
+    uniprotAcc() {
       const header = this.current.header
       if (!header || header.startsWith('>PROTEIN_')) return ''
       // >PROTEIN_00001
@@ -624,23 +601,23 @@ export default {
         return `${mid.groups.id}.1`
       }
       return ''
-    }
+    },
   },
   watch: {
     // call again the method if the route changes
-    $route: 'fetchData'
+    $route: 'fetchData',
   },
-  created () {
+  created() {
     this.fetchData()
   },
   methods: {
-    familyLink (pfamAcc) {
+    familyLink(pfamAcc) {
       openURL(`http://pfam.xfam.org/family/${pfamAcc}`)
     },
-    clanLink (clanAcc) {
+    clanLink(clanAcc) {
       openURL(`http://pfam.xfam.org/clan/${clanAcc}`)
     },
-    async fetchData () {
+    async fetchData() {
       // document.getElementById('q-app').__vue__.$FeathersVuex.api.Pfam
       const id = this.$route.params.id
       this.$debug(id)
@@ -654,11 +631,11 @@ export default {
         }
         this.current = result
         this.seq = `${this.current.header}\n${this.current.seq}`
-      } catch (error) {
+      } catch {
         this.$q.notify({
           position: 'center',
           message: 'Result does not exist',
-          actions: [{ label: 'Dismiss' }]
+          actions: [{ label: 'Dismiss' }],
         })
       }
       // fetch reference
@@ -671,13 +648,13 @@ export default {
           result = await Reference.find({ query: { seqAcc: this.uniprotAcc } })
         }
         this.pfam32ReferenceData = result.data
-          .filter(r => r.refName === 'pfam32')
+          .filter((r) => r.refName === 'pfam32')
           .sort((a, b) => a.start - b.start)
         this.pfam31ReferenceData = result.data
-          .filter(r => r.refName === 'pfam31')
+          .filter((r) => r.refName === 'pfam31')
           .sort((a, b) => a.start - b.start)
       }
-    }
-  }
+    },
+  },
 }
 </script>
