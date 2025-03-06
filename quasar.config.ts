@@ -38,6 +38,12 @@ export default defineConfig((ctx) => {
         node: 'node20',
       },
 
+      typescript: {
+        strict: true,
+        vueShim: true,
+        // extendTsConfig (tsConfig) {}
+      },
+
       vueRouterMode: 'hash', // available values: 'hash', 'history'
       // vueRouterBase,
       // vueDevtools,
@@ -78,8 +84,9 @@ export default defineConfig((ctx) => {
         [
           'vite-plugin-checker',
           {
+            vueTsc: true,
             eslint: {
-              lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{js,mjs,cjs,vue}"',
+              lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{ts,js,mjs,cjs,vue}"',
               useFlatConfig: true,
             },
           },

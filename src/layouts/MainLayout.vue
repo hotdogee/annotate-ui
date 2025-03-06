@@ -45,72 +45,48 @@
   </q-layout>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import { openURL } from 'quasar'
 import { useSystemStore } from '../stores/systemStore'
 import { useLocalSettingsStore } from '../stores/localSettingsStore'
 import { storeToRefs } from 'pinia'
-import Logger from 'assets/logger'
-const logger = new Logger('layouts.MainLayout')
 
-export default {
-  name: 'MainLayout',
-  data() {
-    return {
-      localeOptions: [
-        {
-          label: 'English',
-          value: 'en-us',
-        },
-        {
-          label: '繁中',
-          value: 'zh-hant',
-        },
-      ],
-      showUserForm: 'sign-in',
-      leftDrawerOpen: false,
-      credentials: {
-        email: '',
-        password: '',
-        recaptchaToken: '',
-        disableGoogle: true,
-        disableFacebook: true,
-        disableTwitter: true,
-      },
-    }
-  },
-  setup() {
-    const systemStore = useSystemStore()
-    const localSettingsStore = useLocalSettingsStore()
+// Store setup
+const systemStore = useSystemStore()
+const localSettingsStore = useLocalSettingsStore()
+const { version } = storeToRefs(systemStore)
+const { locale } = storeToRefs(localSettingsStore)
 
-    const { version, status } = storeToRefs(systemStore)
-    const { locale } = storeToRefs(localSettingsStore)
+// Data properties
+const localeOptions = ref([
+  {
+    label: 'English',
+    value: 'en-us',
+  },
+  {
+    label: '繁中',
+    value: 'zh-hant',
+  },
+])
 
-    return {
-      version,
-      status,
-      locale,
-      localSettingsStore,
-    }
+// Computed properties
+const selectedLocale = computed({
+  get: () => locale.value,
+  set: (newLocale) => {
+    console.debug(`locale.set = `, newLocale)
+    localSettingsStore.setLocale({ locale: newLocale })
   },
-  computed: {
-    selectedLocale: {
-      get() {
-        return this.locale
-      },
-      set(locale) {
-        logger.debug(`locale.set = `, locale)
-        this.localSettingsStore.setLocale({ locale })
-      },
-    },
-  },
-  created() {
-    this.$info('created')
-  },
-  methods: {
-    openURL,
-  },
-}
+})
+
+// Lifecycle hooks
+onMounted(() => {
+  console.info('created')
+})
+
+defineExpose({
+  openURL,
+})
 </script>
 
 <style>

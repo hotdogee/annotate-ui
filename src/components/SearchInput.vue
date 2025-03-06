@@ -113,8 +113,8 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from 'vue'
+<script setup lang="ts">
+import { ref, computed, onMounted, type Ref } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
 import { maxLength } from '@vuelidate/validators'
 import { isProtein } from 'assets/validators'
@@ -137,14 +137,17 @@ const rules = {
 
 const v$ = useVuelidate(rules, { seq })
 
-const errorMessages = (vState) => vState.$errors.map((error) => error.$message).join(', ')
+const errorMessages = (vState: { $errors: Array<{ $message: string | Ref<string> }> }) =>
+  vState.$errors
+    .map((error) => (typeof error.$message === 'string' ? error.$message : error.$message.value))
+    .join(', ')
 
 const router = useRouter()
 const $q = useQuasar()
 
 const model = ref('pfam')
 const version = ref('1568346315')
-const recents = useStorage('protein-input:recents', [])
+const recents = useStorage<string[]>('protein-input:recents', [])
 
 // Example sequences
 const examples = ref([
@@ -174,16 +177,19 @@ const seqCount = computed(() => {
   }
   const sequence = seq.value.trim()
   if (sequence[0] === '>') {
-    return sequence.match(/^\s*>/gm).length
+    return sequence.match(/^\s*>/gm)?.length ?? 0
   }
-  const lines = sequence.split('\n').reduce((a, v) => {
+  const lines = sequence.split('\n').reduce<string[]>((a, v) => {
     v = v.trim()
     if (v) {
       a.push(v)
     }
     return a
   }, [])
-  if (lines.length === 1 || lines[0].length === lines[1].length) {
+  if (
+    lines.length === 1 ||
+    (lines.length >= 2 && lines[0] && lines[1] && lines[0].length === lines[1].length)
+  ) {
     return 1
   } else {
     return lines.length
@@ -195,7 +201,7 @@ const seqLength = computed(() => {
   if (!sequence) {
     return 0
   }
-  const lines = sequence.split('\n').reduce((a, v) => {
+  const lines = sequence.split('\n').reduce((a: string[], v) => {
     v = v.trim()
     if (v && v[0] !== '>') {
       a.push(v)
@@ -226,13 +232,19 @@ const predictLabel = computed(() => {
 })
 
 const seqList = computed(() => {
-  const list = []
+  interface SeqItem {
+    header: string
+    seq: string
+    model: string
+    version: string
+  }
+  const list: SeqItem[] = []
   const sequence = seq.value.trim()
   if (!sequence) {
     return list
   }
   if (sequence[0] === '>') {
-    return sequence.split('\n').reduce((a, v) => {
+    return sequence.split('\n').reduce((a: SeqItem[], v) => {
       v = v.trim()
       if (v[0] === '>') {
         const s = {
@@ -243,19 +255,25 @@ const seqList = computed(() => {
         }
         a.push(s)
       } else {
-        a.slice(-1)[0].seq += v
+        const lastItem = a.slice(-1)[0]
+        if (lastItem) {
+          lastItem.seq += v
+        }
       }
       return a
     }, [])
   }
-  const lines = sequence.split('\n').reduce((a, v) => {
+  const lines = sequence.split('\n').reduce<string[]>((a, v) => {
     v = v.trim()
     if (v) {
       a.push(v)
     }
     return a
   }, [])
-  if (lines.length === 1 || lines[0].length === lines[1].length) {
+  if (
+    lines.length === 1 ||
+    (lines.length > 1 && lines[0] && lines[1] && lines[0].length === lines[1].length)
+  ) {
     return [
       {
         header: '>PROTEIN_00001',
@@ -290,6 +308,22 @@ onMounted(() => {
   }, 1000)
 })
 
+// Add type declarations for window properties
+declare global {
+  interface Window {
+    $FeathersVuex: {
+      api: {
+        Pfam: new (data: { header: string; seq: string; model: string; version: string }) => {
+          create: () => Promise<{ _id?: string }>
+        }
+      }
+    }
+    $ga: {
+      event: (category: string, action: string, label: string, value: number) => void
+    }
+  }
+}
+
 const predict = async () => {
   const isValid = await v$.value.seq.$validate()
   if (!seq.value || !isValid) {
@@ -310,6 +344,8 @@ const predict = async () => {
   }
 
   const data = seqList.value[0]
+  if (!data) return
+
   const { Pfam } = window.$FeathersVuex.api
   const pfam = new Pfam(data)
 
@@ -321,7 +357,7 @@ const predict = async () => {
   try {
     const result = await pfam.create()
     if (result._id) {
-      router.push({ path: `/pfam/${result._id}` })
+      await router.push({ path: `/pfam/${result._id}` })
     } else {
       $q.notify({
         position: 'center',
@@ -338,7 +374,7 @@ const predict = async () => {
   }
 }
 
-const addToRecents = (fasta) => {
+const addToRecents = (fasta: string) => {
   const limit = 10
   const i = recents.value.indexOf(fasta)
   if (i !== -1) {
@@ -354,41 +390,45 @@ const clearRecents = () => {
   recents.value = []
 }
 
-const fastaId = (fasta) => {
-  return fastaHeader(fasta).split(' ')[0]
+const fastaId = (fasta: string) => {
+  const header = fastaHeader(fasta)
+  return header ? header.split(' ')[0] : ''
 }
 
-const fastaHeader = (fasta) => {
-  return fasta.split('\n')[0].trim()
+const fastaHeader = (fasta: string) => {
+  const lines = fasta.split('\n')
+  return lines?.[0]?.trim() || ''
 }
 
-const fastaDescription = (fasta) => {
-  return fastaHeader(fasta).substring(fastaId(fasta).length)
+const fastaDescription = (fasta: string) => {
+  const header = fastaHeader(fasta)
+  const id = fastaId(fasta)
+  return header && id ? header.substring(id.length) : ''
 }
 
-const fastaLine = (fasta) => {
+const fastaLine = (fasta: string) => {
   return fasta
     .split('\n')
     .slice(1)
-    .map((line) => line.trim().toUpperCase())
+    .map((line: string) => line.trim().toUpperCase())
     .join('')
 }
 
-const fastaLength = (fasta) => {
+const fastaLength = (fasta: string) => {
   return fastaLine(fasta).length
 }
 
-const loadSeq = (fasta) => {
+const loadSeq = (fasta: string) => {
   seq.value =
     '>PROTEIN_00001\n' +
     fasta
       .split('\n')
       .slice(1)
-      .map((line) => line.trim().toUpperCase())
+      .map((line: string) => line.trim().toUpperCase())
       .join('\n')
 }
 
-const loadRecent = (fasta) => {
+const loadRecent = (fasta: string) => {
   seq.value = fasta
 }
 
@@ -435,6 +475,19 @@ defineExpose({
 #example-btn {
   margin-top: 21px;
   margin-right: 5px;
+}
+
+#example-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: gray;
+  animation: flash 5s infinite ease-in-out;
+  opacity: 0;
+  border-radius: inherit;
 }
 
 #recents__header {
@@ -547,5 +600,25 @@ defineExpose({
   visibility: visible;
   opacity: 1;
   transition: opacity 0.15s;
+}
+
+@keyframes flash {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 </style>
