@@ -147,7 +147,6 @@ const $q = useQuasar()
 
 const model = ref('pfam')
 const version = ref('1568346315')
-const recents = useStorage<string[]>('protein-input:recents', [])
 
 // Example sequences
 const examples = ref([
@@ -318,9 +317,6 @@ declare global {
         }
       }
     }
-    $ga: {
-      event: (category: string, action: string, label: string, value: number) => void
-    }
   }
 }
 
@@ -349,30 +345,28 @@ const predict = async () => {
   const { Pfam } = window.$FeathersVuex.api
   const pfam = new Pfam(data)
 
-  window.$ga.event('pfam', 'create', 'count', seqCount.value)
-  window.$ga.event('pfam', 'create', 'length', seqLength.value)
+  // window.$ga.event('pfam', 'create', 'count', seqCount.value)
+  // window.$ga.event('pfam', 'create', 'length', seqLength.value)
 
   addToRecents(`${data.header}\n${data.seq}`)
 
   try {
     const result = await pfam.create()
     if (result._id) {
-      await router.push({ path: `/pfam/${result._id}` })
+      await router.push({ name: 'pfam', params: { id: result._id } })
     } else {
-      $q.notify({
-        position: 'center',
-        message: 'Server under maintenance',
-        actions: [{ label: 'Dismiss' }],
-      })
+      throw new Error()
     }
   } catch {
     $q.notify({
       position: 'center',
-      message: 'Server under maintenance',
+      message: 'Prediction Service Unavailable',
       actions: [{ label: 'Dismiss' }],
     })
   }
 }
+
+const recents = useStorage<string[]>('protein-input:recents', [])
 
 const addToRecents = (fasta: string) => {
   const limit = 10
