@@ -121,6 +121,7 @@ import { isProtein } from 'assets/validators'
 import { useStorage } from '@vueuse/core'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
+import { pfam } from 'src/boot/feathers'
 
 const seq = defineModel('seq', {
   type: String,
@@ -342,16 +343,13 @@ const predict = async () => {
   const data = seqList.value[0]
   if (!data) return
 
-  const { Pfam } = window.$FeathersVuex.api
-  const pfam = new Pfam(data)
-
   // window.$ga.event('pfam', 'create', 'count', seqCount.value)
   // window.$ga.event('pfam', 'create', 'length', seqLength.value)
 
   addToRecents(`${data.header}\n${data.seq}`)
 
   try {
-    const result = await pfam.create()
+    const result = await pfam.create(data)
     if (result._id) {
       await router.push({ name: 'pfam', params: { id: result._id } })
     } else {
