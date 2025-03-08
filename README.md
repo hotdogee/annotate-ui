@@ -55,7 +55,8 @@ npm install @feathersjs/socketio-client socket.io-client --save
 ## 2025/3/8
 
 - v-charts hasn't been updated in 6 years, need to move to something modern
+- removed v-charts, and moved to @v-charts2/histogram
 
 ```bash
-npm i v-charts echarts -S
+npm install @v-charts2/histogram
 ```

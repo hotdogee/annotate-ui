@@ -56,7 +56,7 @@ import { storeToRefs } from 'pinia'
 const systemStore = useSystemStore()
 const localSettingsStore = useLocalSettingsStore()
 const { version } = storeToRefs(systemStore)
-const { locale } = storeToRefs(localSettingsStore)
+const { locale, getLocale } = storeToRefs(localSettingsStore)
 
 // Data properties
 const localeOptions = ref([
@@ -72,10 +72,9 @@ const localeOptions = ref([
 
 // Computed properties
 const selectedLocale = computed({
-  get: () => locale.value,
+  get: () => getLocale.value,
   set: (newLocale) => {
-    console.debug(`locale.set = `, newLocale)
-    localSettingsStore.setLocale({ locale: newLocale })
+    locale.value = newLocale
   },
 })
 

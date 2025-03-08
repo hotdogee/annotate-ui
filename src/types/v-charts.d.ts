@@ -1,3 +1,5 @@
+declare module 'v-charts'
+
 declare module 'v-charts/lib/histogram.common' {
   import type { Component } from 'vue'
   const VeHistogram: Component

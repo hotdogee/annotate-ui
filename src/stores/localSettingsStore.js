@@ -1,7 +1,4 @@
 import { defineStore } from 'pinia'
-import Logger from 'assets/logger'
-
-const logger = new Logger('stores.localSettings')
 
 export const useLocalSettingsStore = defineStore('localSettings', {
   state: () => ({
@@ -10,7 +7,7 @@ export const useLocalSettingsStore = defineStore('localSettings', {
   }),
 
   getters: {
-    locale(state) {
+    getLocale(state) {
       if (!state.locale || state.locale === 'default') {
         return 'en-us'
       } else {
@@ -19,10 +16,5 @@ export const useLocalSettingsStore = defineStore('localSettings', {
     },
   },
 
-  actions: {
-    setLocale(payload) {
-      logger.debug('setLocale', payload)
-      this.locale = payload.locale
-    },
-  },
+  actions: {},
 })

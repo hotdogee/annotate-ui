@@ -12,11 +12,29 @@
       <div class="q-my-sm text-subtitle1">Sequence Length: {{ seqLength }} aa</div>
     </div>
     <ve-histogram
+      v-if="isChartDataValid"
       :data="pfamChartData"
       :settings="pfamChartSettings"
       :legend="legend"
       :tooltip="tooltip"
     ></ve-histogram>
+    <div v-else class="q-pa-md">
+      <q-banner rounded class="bg-grey-2">
+        <template v-slot:avatar>
+          <q-icon name="error" color="warning" size="md" />
+        </template>
+        <div class="text-subtitle1">Unable to display domain visualization chart</div>
+        <div class="q-mt-sm" v-if="chartError">
+          <span class="text-caption">Error details: {{ chartError }}</span>
+        </div>
+        <div class="q-mt-sm">
+          <span class="text-caption">You can still view the domain data in the tables below.</span>
+        </div>
+        <template v-slot:action>
+          <q-btn flat color="primary" label="Retry" @click="fetchData" />
+        </template>
+      </q-banner>
+    </div>
     <q-table
       :title="pfamTableTitle"
       :rows="pfamTableData"
@@ -150,14 +168,13 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
-import 'echarts/lib/component/legendScroll'
 import numerify from 'numerify'
 import { openURL } from 'quasar'
 import { isFunction } from 'utils-lite'
-import VeHistogram from 'v-charts/lib/histogram.common'
+import VeHistogram from '@v-charts2/histogram'
 import SearchInput from 'components/SearchInput.vue'
 import { pfam, references } from 'src/boot/feathers'
-
+import '@v-charts2/histogram/v-charts.css'
 // Types
 interface DomainMap {
   [key: string]: {
@@ -179,8 +196,8 @@ interface Current {
   _id: string
   domainMap: DomainMap
   header: string
-  predictions: Prediction[]
-  seq: string
+  predictions: Prediction
+  sequence: string
 }
 
 interface TableRow {
@@ -267,22 +284,21 @@ const getFormated = (
 
 // Component setup
 const route = useRoute()
-const q = useQuasar()
+const $q = useQuasar()
 const seq = ref('')
+const chartError = ref<string | null>(null)
 
 // Data
 const current = ref<Current>({
   _id: '',
   domainMap: {},
   header: '',
-  predictions: [
-    {
-      classes: [],
-      top_classes: [],
-      top_probs: [],
-    },
-  ],
-  seq: '',
+  predictions: {
+    classes: [],
+    top_classes: [],
+    top_probs: [],
+  },
+  sequence: '',
 })
 
 const legend = ref({
@@ -356,7 +372,7 @@ const seqLength = computed((): number | string => {
   if (!current.value) {
     return ''
   } else {
-    return current.value.seq.length
+    return current.value.sequence.length
   }
 })
 
@@ -367,7 +383,7 @@ const pfamClasses = computed((): string => {
   if (!current.value) {
     return ''
   } else {
-    return JSON.stringify(current.value.predictions[0].classes, null, '')
+    return JSON.stringify(current.value.predictions.classes, null, '')
   }
 })
 
@@ -375,7 +391,7 @@ const pfamTopClasses = computed((): string => {
   if (!current.value) {
     return ''
   } else {
-    return JSON.stringify(current.value.predictions[0].top_classes, null, '')
+    return JSON.stringify(current.value.predictions.top_classes, null, '')
   }
 })
 
@@ -383,7 +399,7 @@ const pfamTopProbs = computed((): string => {
   if (!current.value) {
     return ''
   } else {
-    return JSON.stringify(current.value.predictions[0].top_probs, null, '')
+    return JSON.stringify(current.value.predictions.top_probs, null, '')
   }
 })
 
@@ -400,7 +416,7 @@ const domainScores = computed((): Record<string, number> => {
   if (!current.value) {
     return {}
   } else {
-    const predictions = current.value.predictions[0]
+    const predictions = current.value.predictions
     if (!predictions) return {}
 
     const probs = predictions.top_probs.flat()
@@ -458,52 +474,75 @@ const sortedDomains = computed((): string[] => {
   }
 })
 
+// Add a new method for handling chart errors
+const handleChartError = (err: unknown, context: string) => {
+  console.error(`Error in ${context}:`, err)
+  chartError.value = err instanceof Error ? err.message : `Error in ${context}`
+}
+
+// Update the computed properties to avoid side effects
 const pfamChartData = computed((): ChartData => {
-  if (!current.value) {
-    return { columns: [], rows: [] }
-  } else {
-    const predictions = current.value.predictions[0]
-    if (!predictions) return { columns: [], rows: [] }
+  try {
+    if (!current.value) {
+      return { columns: [], rows: [] }
+    } else {
+      const predictions = current.value.predictions
+      if (!predictions) return { columns: [], rows: [] }
 
-    const aaKey = 'aa'
-    const rows = current.value.seq.split('').map((v, i) => {
-      const row: Record<string, string | number> = (predictions.top_classes[i] ?? []).reduce(
-        (a: Record<string, number>, c: number, ii: number) => {
-          if (current.value.domainMap[c]) {
-            const pfamId = current.value.domainMap[c].pfamId
-            a[pfamId] = predictions.top_probs[i]?.[ii] ?? 0
-            if (c === 1) {
-              a[pfamId] *= -1
+      const aaKey = 'aa'
+      const rows = current.value.sequence.split('').map((v, i) => {
+        const row: Record<string, string | number> = (predictions.top_classes[i] ?? []).reduce(
+          (a: Record<string, number>, c: number, ii: number) => {
+            if (c && current.value.domainMap[c]) {
+              const pfamId = current.value.domainMap[c].pfamId
+              a[pfamId] = predictions.top_probs[i]?.[ii] ?? 0
+              if (c === 1) {
+                a[pfamId] *= -1
+              }
             }
-          }
-          return a
-        },
-        {},
-      )
-      row[aaKey] = v
-      return row
-    })
+            return a
+          },
+          {},
+        )
+        row[aaKey] = v
+        return row
+      })
 
-    return {
-      columns: [aaKey].concat(sortedDomains.value),
-      rows,
+      return {
+        columns: [aaKey].concat(sortedDomains.value),
+        rows,
+      }
     }
+  } catch (err) {
+    // Log error but don't modify state in computed
+    console.error('Error creating chart data:', err)
+    return { columns: [], rows: [] }
   }
 })
 
 const pfamChartSettings = computed(() => {
-  if (!current.value) {
-    return {}
-  } else {
-    return {
-      stack: { domains: sortedDomains.value },
-      yAxisType: ['percent'],
-      yAxisName: ['Probability'],
-      max: [1],
-      min: [-1],
-      digit: 2,
-      labelMap: labelMap.value,
+  try {
+    if (!current.value) {
+      return {}
+    } else {
+      // Make sure sortedDomains exists and has values
+      const domains = sortedDomains.value || []
+      const labelMapValue = labelMap.value || {}
+
+      return {
+        stack: { domains: domains },
+        yAxisType: ['percent'],
+        yAxisName: ['Probability'],
+        max: [1],
+        min: [-1],
+        digit: 2,
+        labelMap: labelMapValue,
+      }
     }
+  } catch (err) {
+    // Log error but don't modify state in computed
+    console.error('Error creating chart settings:', err)
+    return {}
   }
 })
 
@@ -511,7 +550,7 @@ const pfamTableData = computed((): TableRow[] => {
   if (!current.value) {
     return []
   } else {
-    const predictions = current.value.predictions[0]
+    const predictions = current.value.predictions
     if (!predictions) return []
 
     const PROB_MINIMUM = 0.008
@@ -650,33 +689,51 @@ interface ReferenceData {
 
 const fetchData = async (): Promise<void> => {
   const id = route.params.id as string
-  console.debug(id) // Replacing this.$debug(id)
+  console.log(id)
+  chartError.value = null
 
   try {
     // try fetch from server
     const result = await pfam.get(id)
     current.value = result
-    seq.value = `${current.value.header}\n${current.value.seq}`
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (_error) {
+    seq.value = `${current.value.header}\n${current.value.sequence}`
+
+    // Validate data structure for chart
+    if (!result.sequence || !result.predictions || !result.domainMap) {
+      chartError.value = 'Incomplete data received from server'
+    }
+  } catch (error) {
+    // Set chart error
+    chartError.value = error instanceof Error ? error.message : 'Failed to load data'
+
     // Notify user about error
-    q.notify({
+    $q.notify({
       position: 'center',
       message: 'Result does not exist',
       actions: [{ label: 'Dismiss' }],
     })
   }
 
-  // fetch reference
-  if (uniprotAcc.value) {
-    // try fetch from server
-    const result = await references.find({ query: { seqAcc: uniprotAcc.value } })
-    pfam32ReferenceData.value = result.data
-      .filter((r: ReferenceData) => r.refName === 'pfam32')
-      .sort((a: ReferenceData, b: ReferenceData) => a.start - b.start)
-    pfam31ReferenceData.value = result.data
-      .filter((r: ReferenceData) => r.refName === 'pfam31')
-      .sort((a: ReferenceData, b: ReferenceData) => a.start - b.start)
+  try {
+    // fetch reference
+    if (uniprotAcc.value) {
+      // try fetch from server
+      const result = await references.find({ query: { seqAcc: uniprotAcc.value } })
+      pfam32ReferenceData.value = result.data
+        .filter((r: ReferenceData) => r.refName === 'pfam32')
+        .sort((a: ReferenceData, b: ReferenceData) => a.start - b.start)
+      pfam31ReferenceData.value = result.data
+        .filter((r: ReferenceData) => r.refName === 'pfam31')
+        .sort((a: ReferenceData, b: ReferenceData) => a.start - b.start)
+    }
+  } catch (error) {
+    console.error('Error fetching reference data:', error)
+    $q.notify({
+      position: 'bottom',
+      color: 'warning',
+      message: 'Failed to load reference data',
+      actions: [{ label: 'Dismiss' }],
+    })
   }
 }
 
@@ -691,4 +748,84 @@ watch(
     await fetchData()
   },
 )
+
+// Add watchers for chart data to catch potential errors
+watch(
+  () => current.value,
+  (newVal) => {
+    try {
+      // Reset chart error when new data is loaded
+      chartError.value = null
+
+      // Basic validation
+      if (!newVal || !newVal.sequence || !newVal.predictions) {
+        chartError.value = 'Incomplete data for chart rendering'
+      }
+    } catch (err) {
+      handleChartError(err, 'data update')
+    }
+  },
+)
+
+// Add debounced watcher for chart data to validate it before rendering
+const validateChartData = () => {
+  try {
+    // Access the computed properties to validate them
+    const chartData = pfamChartData.value
+    const chartSettings = pfamChartSettings.value
+
+    if (!chartData || !chartData.columns || !chartData.rows || chartData.rows.length === 0) {
+      chartError.value = 'Invalid chart data structure'
+      return false
+    }
+
+    if (!chartSettings || !chartSettings.stack || !chartSettings.yAxisType) {
+      chartError.value = 'Invalid chart settings'
+      return false
+    }
+
+    // Check for domain map consistency
+    const domains = sortedDomains.value
+    if (domains.length === 0 && current.value && current.value.sequence) {
+      chartError.value = 'No domains found to display'
+      return false
+    }
+
+    return true
+  } catch (err) {
+    handleChartError(err, 'chart validation')
+    return false
+  }
+}
+
+watch([() => pfamChartData.value, () => pfamChartSettings.value], () => {
+  // Use setTimeout to ensure this runs after the Vue reactivity system has settled
+  setTimeout(validateChartData, 0)
+})
+
+// Update isChartDataValid to call error handler when appropriate
+const isChartDataValid = computed((): boolean => {
+  try {
+    if (!current.value || !current.value.sequence || !current.value.predictions) {
+      return false
+    }
+
+    // Ensure we have valid chart data structure
+    const data = pfamChartData.value
+    if (!data || !data.columns || !data.rows || !data.columns.length || !data.rows.length) {
+      return false
+    }
+
+    // Ensure settings are valid
+    const settings = pfamChartSettings.value
+    if (!settings || !settings.stack || !settings.yAxisType || !settings.yAxisName) {
+      return false
+    }
+
+    return true
+  } catch (err) {
+    handleChartError(err, 'chart data validation')
+    return false
+  }
+})
 </script>
