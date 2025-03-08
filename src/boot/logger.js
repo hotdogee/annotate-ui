@@ -2,6 +2,7 @@ import { defineBoot } from '#q-app/wrappers'
 import Logger from 'assets/logger'
 const logger = new Logger()
 const levels = ['debug', 'log', 'warn', 'error', 'info']
+const loggers = {}
 export default defineBoot(({ app }) => {
   levels.forEach((level) => {
     app.config.globalProperties['$' + level] = function (...msg) {
@@ -10,5 +11,9 @@ export default defineBoot(({ app }) => {
         : this.$options.name || this.$vnode.tag
       logger[level](prefix || 'component', ...msg)
     }
+    loggers[level] = app.config.globalProperties['$' + level]
   })
 })
+
+// Export all loggers individually
+export const { debug, log, warn, error, info } = loggers

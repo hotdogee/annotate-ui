@@ -8,11 +8,11 @@ const socket = io(process.env.API_URL, {
   path: process.env.API_PATH + '/socket.io/',
 })
 const client = feathers()
-const pfam = client.service('pfam')
-const references = client.service('references')
-
 // Set up Socket.io client with the socket
 client.configure(socketio(socket, { timeout: 10000 }))
+
+const pfam = client.service('pfam')
+const references = client.service('references')
 
 export default defineBoot(({ app }) => {
   app.config.globalProperties.$client = client

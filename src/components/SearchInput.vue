@@ -234,7 +234,7 @@ const predictLabel = computed(() => {
 const seqList = computed(() => {
   interface SeqItem {
     header: string
-    seq: string
+    sequence: string
     model: string
     version: string
   }
@@ -249,7 +249,7 @@ const seqList = computed(() => {
       if (v[0] === '>') {
         const s = {
           header: v,
-          seq: '',
+          sequence: '',
           model: model.value,
           version: version.value,
         }
@@ -257,7 +257,7 @@ const seqList = computed(() => {
       } else {
         const lastItem = a.slice(-1)[0]
         if (lastItem) {
-          lastItem.seq += v
+          lastItem.sequence += v
         }
       }
       return a
@@ -277,7 +277,7 @@ const seqList = computed(() => {
     return [
       {
         header: '>PROTEIN_00001',
-        seq: lines.join(''),
+        sequence: lines.join(''),
         model: model.value,
         version: version.value,
       },
@@ -285,7 +285,7 @@ const seqList = computed(() => {
   } else {
     return lines.map((v, i) => ({
       header: `>PROTEIN_${('' + (i + 1)).padStart(5, '0')}`,
-      seq: v,
+      sequence: v,
       model: model.value,
       version: version.value,
     }))
@@ -307,19 +307,6 @@ onMounted(() => {
     }
   }, 1000)
 })
-
-// Add type declarations for window properties
-declare global {
-  interface Window {
-    $FeathersVuex: {
-      api: {
-        Pfam: new (data: { header: string; seq: string; model: string; version: string }) => {
-          create: () => Promise<{ _id?: string }>
-        }
-      }
-    }
-  }
-}
 
 const predict = async () => {
   const isValid = await v$.value.seq.$validate()
@@ -346,10 +333,11 @@ const predict = async () => {
   // window.$ga.event('pfam', 'create', 'count', seqCount.value)
   // window.$ga.event('pfam', 'create', 'length', seqLength.value)
 
-  addToRecents(`${data.header}\n${data.seq}`)
+  addToRecents(`${data.header}\n${data.sequence}`)
 
   try {
     const result = await pfam.create(data)
+    console.log('result', result)
     if (result._id) {
       await router.push({ name: 'pfam', params: { id: result._id } })
     } else {

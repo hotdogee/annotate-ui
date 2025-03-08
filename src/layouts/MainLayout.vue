@@ -81,7 +81,7 @@ const selectedLocale = computed({
 
 // Lifecycle hooks
 onMounted(() => {
-  console.info('created')
+  // console.info('MainLayout mounted')
 })
 
 defineExpose({

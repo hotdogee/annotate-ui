@@ -51,3 +51,11 @@ See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-
 ```bash
 npm install @feathersjs/socketio-client socket.io-client --save
 ```
+
+## 2025/3/8
+
+- v-charts hasn't been updated in 6 years, need to move to something modern
+
+```bash
+npm i v-charts echarts -S
+```

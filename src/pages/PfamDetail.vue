@@ -19,7 +19,7 @@
     ></ve-histogram>
     <q-table
       :title="pfamTableTitle"
-      :data="pfamTableData"
+      :rows="pfamTableData"
       :columns="pfamTableColumns"
       v-model:pagination="pagination"
       row-key="start"
@@ -53,7 +53,7 @@
     <br />
     <q-table
       title="Pfam32 Reference Data"
-      :data="pfam32ReferenceData"
+      :rows="pfam32ReferenceData"
       :columns="pfamReferenceColumns"
       v-model:pagination="pagination"
       row-key="start"
@@ -86,7 +86,7 @@
     <br />
     <q-table
       title="Pfam31 Reference Data"
-      :data="pfam31ReferenceData"
+      :rows="pfam31ReferenceData"
       :columns="pfamReferenceColumns"
       v-model:pagination="pagination"
       row-key="start"
@@ -151,14 +151,12 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
 import 'echarts/lib/component/legendScroll'
-// @ts-expect-error Missing type definitions
 import numerify from 'numerify'
 import { openURL } from 'quasar'
-// @ts-expect-error Missing type definitions
 import { isFunction } from 'utils-lite'
-// @ts-expect-error Missing type definitions
 import VeHistogram from 'v-charts/lib/histogram.common'
 import SearchInput from 'components/SearchInput.vue'
+import { pfam, references } from 'src/boot/feathers'
 
 // Types
 interface DomainMap {
@@ -244,8 +242,8 @@ const getFormated = (
   if (isFunction(type)) return (type as FormatterFunction)(val, numerify)
 
   digit = isNaN(digit) ? 0 : ++digit
-  // Convert digit to string for Array constructor
-  const digitStr = `.[${new Array(digit.toString()).join(0)}]`
+  // Create a string with the appropriate number of zeros
+  const digitStr = `.[${digit > 0 ? '0'.repeat(digit) : ''}]`
   let formatter = type
   switch (type) {
     case 'KMB':
@@ -258,6 +256,12 @@ const getFormated = (
       formatter = digit ? `0,0${digitStr}%` : '0,0.[00]%'
       break
   }
+
+  // Handle case when formatter is a function
+  if (typeof formatter === 'function') {
+    return formatter(val, numerify)
+  }
+
   return numerify(val, formatter)
 }
 
@@ -407,7 +411,7 @@ const domainScores = computed((): Record<string, number> => {
         if (!Array.isArray(a[key])) {
           a[key] = []
         }
-        a[key].push(probs[i])
+        a[key].push(probs[i] ?? 0)
         return a
       }, {})
 
@@ -417,7 +421,7 @@ const domainScores = computed((): Record<string, number> => {
         if (c === '1') {
           a[c] = 200
         } else {
-          a[c] = arrAvg(counts[c]) * 100
+          a[c] = arrAvg(counts[c] ?? []) * 100
         }
         return a
       },
@@ -433,13 +437,13 @@ const labelMap = computed((): Record<string, string> => {
   } else {
     const scores = domainScores.value
     return Object.keys(scores)
-      .sort((a, b) => scores[b] - scores[a])
+      .sort((a, b) => (scores[b] ?? 0) - (scores[a] ?? 0))
       .reduce((a: Record<string, string>, c: string) => {
-        if (c === '1' && current.value.domainMap[c]) {
-          a[current.value.domainMap[c].pfamId] = current.value.domainMap[c].pfamId
-        } else if (current.value.domainMap[c]) {
-          a[current.value.domainMap[c].pfamId] =
-            `${current.value.domainMap[c].pfamId}(${scores[c].toFixed(1)})`
+        const domain = current.value.domainMap[c]
+        if (c === '1' && domain) {
+          a[domain.pfamId] = domain.pfamId
+        } else if (domain) {
+          a[domain.pfamId] = `${domain.pfamId}(${(scores[c] ?? 0).toFixed(1)})`
         }
         return a
       }, {})
@@ -463,12 +467,13 @@ const pfamChartData = computed((): ChartData => {
 
     const aaKey = 'aa'
     const rows = current.value.seq.split('').map((v, i) => {
-      const row: Record<string, string | number> = predictions.top_classes[i].reduce(
+      const row: Record<string, string | number> = (predictions.top_classes[i] ?? []).reduce(
         (a: Record<string, number>, c: number, ii: number) => {
           if (current.value.domainMap[c]) {
-            a[current.value.domainMap[c].pfamId] = predictions.top_probs[i][ii]
+            const pfamId = current.value.domainMap[c].pfamId
+            a[pfamId] = predictions.top_probs[i]?.[ii] ?? 0
             if (c === 1) {
-              a[current.value.domainMap[c].pfamId] *= -1
+              a[pfamId] *= -1
             }
           }
           return a
@@ -513,7 +518,7 @@ const pfamTableData = computed((): TableRow[] => {
     const SCORE_THRESHOLD = 0.5
     const domainThresholds = Object.keys(domainScores.value).reduce(
       (a: Record<string, number>, c: string) => {
-        const score = domainScores.value[c]
+        const score = domainScores.value[c] ?? 0
         if (score > 100 || score < PROB_MINIMUM * 100) {
           a[c] = 999
         } else if (score > 50) {
@@ -533,11 +538,17 @@ const pfamTableData = computed((): TableRow[] => {
 
     return topClasses
       .reduce((a: number[], classes: number[], i: number) => {
-        const [c1, c2] = classes
-        const p2 = topProbs[i][1]
+        const c1 = classes[0] ?? 1 // Default to 1 if not present
+        const c2 = classes[1]
+        const p2 = topProbs[i]?.[1]
         // start condition: prob over threshold
         let c = c1
-        if (c1 === 1 && p2 > domainThresholds[c2.toString()]) {
+        if (
+          c1 === 1 &&
+          c2 !== undefined &&
+          p2 !== undefined &&
+          p2 > (domainThresholds[c2.toString()] ?? 0)
+        ) {
           c = c2
         }
         a[i] = c
@@ -555,7 +566,7 @@ const pfamTableData = computed((): TableRow[] => {
             clanAcc: current.value.domainMap[c].clanAcc,
             clanId: current.value.domainMap[c].clanId,
             pfamDesc: current.value.domainMap[c].pfamDesc,
-            score: domainScores.value[c].toFixed(1),
+            score: domainScores.value[c]?.toFixed(1) ?? '0.0',
             class: c,
           })
         } else if (!!recentRegion && c === recentRegion.class && current.value.domainMap[c]) {
@@ -570,7 +581,7 @@ const pfamTableData = computed((): TableRow[] => {
               clanAcc: current.value.domainMap[c].clanAcc,
               clanId: current.value.domainMap[c].clanId,
               pfamDesc: current.value.domainMap[c].pfamDesc,
-              score: domainScores.value[c].toFixed(1),
+              score: domainScores.value[c]?.toFixed(1) ?? '0.0',
               class: c,
             })
           }
@@ -588,7 +599,7 @@ const pfamTableData = computed((): TableRow[] => {
             clanAcc: current.value.domainMap[c].clanAcc,
             clanId: current.value.domainMap[c].clanId,
             pfamDesc: current.value.domainMap[c].pfamDesc,
-            score: domainScores.value[c].toFixed(1),
+            score: domainScores.value[c]?.toFixed(1) ?? '0.0',
             class: c,
           })
         }
@@ -637,43 +648,16 @@ interface ReferenceData {
   [key: string]: unknown
 }
 
-interface FeathersVuexApi {
-  Pfam: {
-    getFromStore: (id: string) => Current | null
-    get: (id: string) => Promise<Current>
-  }
-  Reference: {
-    findInStore: (query: { query: { seqAcc: string } }) => { total: number; data: ReferenceData[] }
-    find: (query: {
-      query: { seqAcc: string }
-    }) => Promise<{ total: number; data: ReferenceData[] }>
-  }
-}
-
-interface FeathersVuex {
-  api: FeathersVuexApi
-}
-
-interface WindowWithFeathersVuex extends Window {
-  $FeathersVuex: FeathersVuex
-}
-
 const fetchData = async (): Promise<void> => {
   const id = route.params.id as string
   console.debug(id) // Replacing this.$debug(id)
 
-  // Assuming $FeathersVuex is available globally or through a plugin
-  const { Pfam, Reference } = (window as unknown as WindowWithFeathersVuex).$FeathersVuex.api
-
   try {
-    // try fetching from the store
-    let result = Pfam.getFromStore(id)
-    if (!result) {
-      // try fetch from server
-      result = await Pfam.get(id)
-    }
+    // try fetch from server
+    const result = await pfam.get(id)
     current.value = result
     seq.value = `${current.value.header}\n${current.value.seq}`
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_error) {
     // Notify user about error
     q.notify({
@@ -685,12 +669,8 @@ const fetchData = async (): Promise<void> => {
 
   // fetch reference
   if (uniprotAcc.value) {
-    // try fetching from the store
-    let result = Reference.findInStore({ query: { seqAcc: uniprotAcc.value } })
-    if (result.total === 0) {
-      // try fetch from server
-      result = await Reference.find({ query: { seqAcc: uniprotAcc.value } })
-    }
+    // try fetch from server
+    const result = await references.find({ query: { seqAcc: uniprotAcc.value } })
     pfam32ReferenceData.value = result.data
       .filter((r: ReferenceData) => r.refName === 'pfam32')
       .sort((a: ReferenceData, b: ReferenceData) => a.start - b.start)
@@ -701,14 +681,14 @@ const fetchData = async (): Promise<void> => {
 }
 
 // Lifecycle hooks and watchers
-onMounted(() => {
-  fetchData()
+onMounted(async () => {
+  await fetchData()
 })
 
 watch(
   () => route.params.id,
-  () => {
-    fetchData()
+  async () => {
+    await fetchData()
   },
 )
 </script>
