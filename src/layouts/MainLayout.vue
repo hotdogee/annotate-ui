@@ -21,9 +21,6 @@
           <q-item-label lines="1">
             Made with <span class="text-red-14">❤</span> by Han Lin (hotdogee)
           </q-item-label>
-          <q-item-label class="text-caption" lines="1">
-            {{ version.ui }}
-          </q-item-label>
         </q-item-section>
         <q-space></q-space>
         <div class="copyright">© {{ new Date().getFullYear() }}</div>
@@ -80,7 +77,7 @@ const selectedLocale = computed({
 
 // Lifecycle hooks
 onMounted(() => {
-  // console.info('MainLayout mounted')
+  console.log(`ANNotate v${version.value}`)
 })
 
 defineExpose({
