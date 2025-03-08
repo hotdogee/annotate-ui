@@ -70,6 +70,7 @@
     </q-table>
     <br />
     <q-table
+      v-if="pfam32ReferenceData.length > 0"
       title="Pfam32 Reference Data"
       :rows="pfam32ReferenceData"
       :columns="pfamReferenceColumns"
@@ -103,6 +104,7 @@
     </q-table>
     <br />
     <q-table
+      v-if="pfam31ReferenceData.length > 0"
       title="Pfam31 Reference Data"
       :rows="pfam31ReferenceData"
       :columns="pfamReferenceColumns"
@@ -134,7 +136,7 @@
         </q-td>
       </template>
     </q-table>
-    <hr class="q-hr q-my-xl" />
+    <!-- <hr class="q-hr q-my-xl" /> -->
     <!-- <q-input
       v-model="pfamClasses"
       float-label="Classes"
@@ -155,10 +157,10 @@
       float-label="TopProbs"
       type="textarea"
     />-->
-    <div class="row justify-center">
+    <!-- <div class="row justify-center">
       <img class="center" alt="ANNotate logo" src="~assets/annotate-logo-long-v2-h92.png" />
-    </div>
-    <search-input v-model:seq="seq"></search-input>
+    </div> -->
+    <!-- <search-input v-model:seq="seq"></search-input> -->
   </q-page>
 </template>
 
@@ -172,7 +174,7 @@ import numerify from 'numerify'
 import { openURL } from 'quasar'
 import { isFunction } from 'utils-lite'
 import VeHistogram from '@v-charts2/histogram'
-import SearchInput from 'components/SearchInput.vue'
+// import SearchInput from 'components/SearchInput.vue'
 import { pfam, references } from 'src/boot/feathers'
 import '@v-charts2/histogram/v-charts.css'
 // Types
