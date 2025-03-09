@@ -7,7 +7,7 @@ import { io } from 'socket.io-client'
 const socket = io(process.env.API_URL, {
   path: process.env.API_PATH + '/socket.io/',
   // throw errors if the server doesn't respond in time
-  ackTimeout: 10000,
+  ackTimeout: 8000,
 })
 const client = feathers()
 // Set up Socket.io client with the socket
