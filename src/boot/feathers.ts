@@ -1,15 +1,17 @@
 import { defineBoot } from '#q-app/wrappers'
 import { feathers } from '@feathersjs/feathers'
 import socketio from '@feathersjs/socketio-client'
-import io from 'socket.io-client'
+import { io } from 'socket.io-client'
 
 // Setup the Feathers client
 const socket = io(process.env.API_URL, {
   path: process.env.API_PATH + '/socket.io/',
+  // throw errors if the server doesn't respond in time
+  ackTimeout: 10000,
 })
 const client = feathers()
 // Set up Socket.io client with the socket
-client.configure(socketio(socket, { timeout: 10000 }))
+client.configure(socketio(socket))
 
 const pfam = client.service('pfam')
 const references = client.service('references')
