@@ -30,9 +30,6 @@
         <div class="q-mt-sm">
           <span class="text-caption">You can still view the domain data in the tables below.</span>
         </div>
-        <template v-slot:action>
-          <q-btn flat color="primary" label="Retry" @click="fetchData" />
-        </template>
       </q-banner>
     </div>
     <q-table
@@ -167,7 +164,7 @@
 <style lang="stylus"></style>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
 import numerify from 'numerify'
@@ -175,8 +172,10 @@ import { openURL } from 'quasar'
 import { isFunction } from 'utils-lite'
 import VeHistogram from '@v-charts2/histogram'
 // import SearchInput from 'components/SearchInput.vue'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { pfam, references } from 'src/boot/feathers'
 import '@v-charts2/histogram/v-charts.css'
+import { useQuery } from '@pinia/colada'
 // Types
 interface DomainMap {
   [key: string]: {
@@ -194,6 +193,7 @@ interface Prediction {
   top_probs: number[][]
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Current {
   _id: string
   domainMap: DomainMap
@@ -286,22 +286,23 @@ const getFormated = (
 
 // Component setup
 const route = useRoute()
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const $q = useQuasar()
-const seq = ref('')
+// const seq = ref('')
 const chartError = ref<string | null>(null)
 
 // Data
-const current = ref<Current>({
-  _id: '',
-  domainMap: {},
-  header: '',
-  predictions: {
-    classes: [],
-    top_classes: [],
-    top_probs: [],
-  },
-  sequence: '',
-})
+// const current = ref<Current>({
+//   _id: '',
+//   domainMap: {},
+//   header: '',
+//   predictions: {
+//     classes: [],
+//     top_classes: [],
+//     top_probs: [],
+//   },
+//   sequence: '',
+// })
 
 const legend = ref({
   type: 'scroll',
@@ -492,23 +493,25 @@ const pfamChartData = computed((): ChartData => {
       if (!predictions) return { columns: [], rows: [] }
 
       const aaKey = 'aa'
-      const rows = current.value.sequence.split('').map((v, i) => {
-        const row: Record<string, string | number> = (predictions.top_classes[i] ?? []).reduce(
-          (a: Record<string, number>, c: number, ii: number) => {
-            if (c && current.value.domainMap[c]) {
-              const pfamId = current.value.domainMap[c].pfamId
-              a[pfamId] = predictions.top_probs[i]?.[ii] ?? 0
-              if (c === 1) {
-                a[pfamId] *= -1
+      const rows = current.value.sequence
+        .split('')
+        .map((v: string | number, i: string | number) => {
+          const row: Record<string, string | number> = (predictions.top_classes[i] ?? []).reduce(
+            (a: Record<string, number>, c: number, ii: number) => {
+              if (c && current.value.domainMap[c]) {
+                const pfamId = current.value.domainMap[c].pfamId
+                a[pfamId] = predictions.top_probs[i]?.[ii] ?? 0
+                if (c === 1 && a[pfamId] !== undefined) {
+                  a[pfamId] *= -1
+                }
               }
-            }
-            return a
-          },
-          {},
-        )
-        row[aaKey] = v
-        return row
-      })
+              return a
+            },
+            {},
+          )
+          row[aaKey] = v
+          return row
+        })
 
       return {
         columns: [aaKey].concat(sortedDomains.value),
@@ -646,10 +649,11 @@ const pfamTableData = computed((): TableRow[] => {
         }
         return a
       }, [])
-      .filter((row) => row.end - row.start > MIN_REGION_LENGTH - 2)
+      .filter((row: TableRow) => row.end - row.start > MIN_REGION_LENGTH - 2)
   }
 })
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const uniprotAcc = computed((): string => {
   const header = current.value.header
   if (!header || header.startsWith('>PROTEIN_')) return ''
@@ -682,74 +686,79 @@ const clanLink = (clanAcc: string): void => {
   openURL(`http://pfam.xfam.org/clan/${clanAcc}`)
 }
 
-interface ReferenceData {
-  refName: string
-  start: number
-  end: number
-  [key: string]: unknown
-}
+// interface ReferenceData {
+//   refName: string
+//   start: number
+//   end: number
+//   [key: string]: unknown
+// }
 
-const fetchData = async (): Promise<void> => {
-  const id = route.params.id as string
-  console.log(id)
-  chartError.value = null
-
-  try {
-    // try fetch from server
-    const result = await pfam.get(id)
-    current.value = result
-    seq.value = `${current.value.header}\n${current.value.sequence}`
-
-    // Validate data structure for chart
-    if (!result.sequence || !result.predictions || !result.domainMap) {
-      chartError.value = 'Incomplete data received from server'
-    }
-  } catch (error) {
-    // Set chart error
-    chartError.value = error instanceof Error ? error.message : 'Failed to load data'
-
-    // Notify user about error
-    $q.notify({
-      position: 'center',
-      message: 'Result does not exist',
-      actions: [{ label: 'Dismiss' }],
-    })
-  }
-
-  try {
-    // fetch reference
-    if (uniprotAcc.value) {
-      // try fetch from server
-      const result = await references.find({ query: { seqAcc: uniprotAcc.value } })
-      pfam32ReferenceData.value = result.data
-        .filter((r: ReferenceData) => r.refName === 'pfam32')
-        .sort((a: ReferenceData, b: ReferenceData) => a.start - b.start)
-      pfam31ReferenceData.value = result.data
-        .filter((r: ReferenceData) => r.refName === 'pfam31')
-        .sort((a: ReferenceData, b: ReferenceData) => a.start - b.start)
-    }
-  } catch (error) {
-    console.error('Error fetching reference data:', error)
-    $q.notify({
-      position: 'bottom',
-      color: 'warning',
-      message: 'Failed to load reference data',
-      actions: [{ label: 'Dismiss' }],
-    })
-  }
-}
-
-// Lifecycle hooks and watchers
-onMounted(async () => {
-  await fetchData()
+const { data: current } = useQuery({
+  staleTime: Infinity,
+  key: () => ['pfam', route.params.id as string],
+  query: () => pfam.get(route.params.id as string),
 })
 
-watch(
-  () => route.params.id,
-  async () => {
-    await fetchData()
-  },
-)
+// const {
+//   data: current,
+// } = useQuery({
+//   staleTime: Infinity,
+//   key: () => ['pfam', route.params.id as string],
+//   query: () => pfam.get(route.params.id as string),
+// })
+
+// const fetchData = async (): Promise<void> => {
+//   const id = route.params.id as string
+//   console.log(id)
+//   chartError.value = null
+
+//   try {
+//     // try fetch from server
+//     const result = await pfam.get(id)
+//     current.value = result
+//     // seq.value = `${current.value.header}\n${current.value.sequence}`
+
+//     // Validate data structure for chart
+//     if (!result.sequence || !result.predictions || !result.domainMap) {
+//       chartError.value = 'Incomplete data received from server'
+//     }
+//   } catch (error) {
+//     // Set chart error
+//     chartError.value = error instanceof Error ? error.message : 'Failed to load data'
+
+//     // Notify user about error
+//     $q.notify({
+//       position: 'center',
+//       message: 'Result does not exist',
+//       actions: [{ label: 'Dismiss' }],
+//     })
+//   }
+
+//   try {
+//     // fetch reference
+//     if (uniprotAcc.value) {
+//       // try fetch from server
+//       const result = await references.find({ query: { seqAcc: uniprotAcc.value } })
+//       pfam32ReferenceData.value = result.data
+//         .filter((r: ReferenceData) => r.refName === 'pfam32')
+//         .sort((a: ReferenceData, b: ReferenceData) => a.start - b.start)
+//       pfam31ReferenceData.value = result.data
+//         .filter((r: ReferenceData) => r.refName === 'pfam31')
+//         .sort((a: ReferenceData, b: ReferenceData) => a.start - b.start)
+//     }
+//   } catch (error) {
+//     console.error('Error fetching reference data:', error)
+//     $q.notify({
+//       position: 'bottom',
+//       color: 'warning',
+//       message: 'Failed to load reference data',
+//       actions: [{ label: 'Dismiss' }],
+//     })
+//   }
+// }
+
+// fetch data immediately on load and when the route changes
+// watch(() => route.params.id, fetchData, { immediate: true })
 
 // Add watchers for chart data to catch potential errors
 watch(
