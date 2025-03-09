@@ -128,7 +128,7 @@ import { useStorage } from '@vueuse/core'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { pfam } from 'src/boot/feathers'
-import { useMutation } from '@pinia/colada'
+import { useMutation, useQueryCache } from '@pinia/colada'
 
 const seq = defineModel('seq', {
   type: String,
@@ -316,6 +316,8 @@ onMounted(() => {
   }, 1000)
 })
 
+const queryCache = useQueryCache()
+
 const {
   mutate: createPfam,
   isLoading,
@@ -329,6 +331,8 @@ const {
     console.log('result', result)
     // // {}
     // console.log('context', context)
+    // set cache
+    queryCache.setQueryData(['pfam', result._id], result)
     await router.push({ name: 'pfam', params: { id: result._id } })
   },
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
