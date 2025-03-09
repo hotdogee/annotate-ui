@@ -129,6 +129,7 @@ import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { pfam } from 'src/boot/feathers'
 import { useMutation, useQueryCache } from '@pinia/colada'
+import { md5 } from 'js-md5'
 
 const seq = defineModel('seq', {
   type: String,
@@ -324,7 +325,16 @@ const {
   // status,
   // asyncStatus,
 } = useMutation({
-  mutation: (data: SeqItem) => pfam.create(data),
+  mutation: async (data: SeqItem) => {
+    // compute the md5 hash of the sequence
+    const hash = md5.create().update(data.sequence).update(data.model).update(data.version).hex()
+    console.log('hash', hash)
+    const cached = localStorage.getItem(`pfam-${hash}`)
+    if (cached) {
+      return JSON.parse(cached)
+    }
+    return await pfam.create(data)
+  },
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onSuccess: async (result, data, context) => {
     // console.log('data', data)
