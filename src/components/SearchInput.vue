@@ -108,7 +108,13 @@
       </div>
     </div>
     <div class="row justify-center">
-      <q-btn id="predict" :label="predictLabel" color="primary" @click="predict" />
+      <q-btn
+        id="predict"
+        :label="predictLabel"
+        color="primary"
+        @click="predict"
+        :loading="isLoading"
+      />
     </div>
   </div>
 </template>
@@ -122,6 +128,7 @@ import { useStorage } from '@vueuse/core'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { pfam } from 'src/boot/feathers'
+import { useMutation } from '@pinia/colada'
 
 const seq = defineModel('seq', {
   type: String,
@@ -231,13 +238,14 @@ const predictLabel = computed(() => {
   }
 })
 
+interface SeqItem {
+  header: string
+  sequence: string
+  model: string
+  version: string
+}
+
 const seqList = computed(() => {
-  interface SeqItem {
-    header: string
-    sequence: string
-    model: string
-    version: string
-  }
   const list: SeqItem[] = []
   const sequence = seq.value.trim()
   if (!sequence) {
@@ -308,6 +316,44 @@ onMounted(() => {
   }, 1000)
 })
 
+const {
+  mutate: createPfam,
+  isLoading,
+  // status,
+  // asyncStatus,
+} = useMutation({
+  mutation: (data: SeqItem) => pfam.create(data),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onSuccess: async (result, data, context) => {
+    // console.log('data', data)
+    console.log('result', result)
+    // // {}
+    // console.log('context', context)
+    await router.push({ name: 'pfam', params: { id: result._id } })
+  },
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onError: (error, data, context) => {
+    // error = {
+    // "name": "BadRequest",
+    // "message": "Error resolving data",
+    // "code": 400,
+    // "className": "bad-request",
+    // }
+    // Error: operation has timed out
+    // console.error('error', error)
+    // console.log('data', data)
+    // context = {}
+    // console.log('context', context)
+    $q.notify({
+      type: 'negative',
+      progress: true,
+      position: 'center',
+      message: 'Prediction Service Unavailable',
+      actions: [{ color: 'white', label: 'Dismiss', 'aria-label': 'Dismiss' }],
+    })
+  },
+})
+
 const predict = async () => {
   const isValid = await v$.value.seq.$validate()
   if (!seq.value || !isValid) {
@@ -334,22 +380,7 @@ const predict = async () => {
   // window.$ga.event('pfam', 'create', 'length', seqLength.value)
 
   addToRecents(`${data.header}\n${data.sequence}`)
-
-  try {
-    const result = await pfam.create(data)
-    console.log('result', result)
-    if (result._id) {
-      await router.push({ name: 'pfam', params: { id: result._id } })
-    } else {
-      throw new Error()
-    }
-  } catch {
-    $q.notify({
-      position: 'center',
-      message: 'Prediction Service Unavailable',
-      actions: [{ label: 'Dismiss' }],
-    })
-  }
+  createPfam(data)
 }
 
 const recents = useStorage<string[]>('protein-input:recents', [])
