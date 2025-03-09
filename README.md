@@ -60,3 +60,7 @@ npm install @feathersjs/socketio-client socket.io-client --save
 ```bash
 npm install @v-charts2/histogram
 ```
+
+## 2025/3/9
+
+- Use pinia-colada to handle api caching
