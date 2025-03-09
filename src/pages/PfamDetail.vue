@@ -693,10 +693,24 @@ const clanLink = (clanAcc: string): void => {
 //   [key: string]: unknown
 // }
 
+// const queryCache = useQueryCache()
+// queryCache.$persist()
+
 const { data: current } = useQuery({
   staleTime: Infinity,
   key: () => ['pfam', route.params.id as string],
-  query: () => pfam.get(route.params.id as string),
+  query: async () => {
+    // check local storage
+    const id = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id
+    if (!id) {
+      throw new Error('ID is undefined')
+    }
+    const cachedData = localStorage.getItem(`pfam-${id}`)
+    if (cachedData) {
+      return JSON.parse(cachedData)
+    }
+    return await pfam.get(id)
+  },
 })
 
 // const {

@@ -64,3 +64,9 @@ npm install @v-charts2/histogram
 ## 2025/3/9
 
 - Use pinia-colada to handle api caching
+
+## 2025/3/10
+
+- Use pinia-plugin-persistedstate to persist the query cache
+  - doesn't work
+- Use native localStorage api to cache api responses instead

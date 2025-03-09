@@ -331,7 +331,9 @@ const {
     console.log('result', result)
     // // {}
     // console.log('context', context)
-    // set cache
+    // store in local storage
+    localStorage.setItem(`pfam-${result._id}`, JSON.stringify(result))
+    // set query data
     queryCache.setQueryData(['pfam', result._id], result)
     await router.push({ name: 'pfam', params: { id: result._id } })
   },
@@ -344,7 +346,7 @@ const {
     // "className": "bad-request",
     // }
     // Error: operation has timed out
-    // console.error('error', error)
+    console.error('error', error)
     // console.log('data', data)
     // context = {}
     // console.log('context', context)
