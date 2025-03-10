@@ -166,41 +166,17 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useQuasar } from 'quasar'
+// import { useQuasar } from 'quasar'
 import numerify from 'numerify'
 import { openURL } from 'quasar'
 import { isFunction } from 'utils-lite'
 import VeHistogram from '@v-charts2/histogram'
 // import SearchInput from 'components/SearchInput.vue'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 import { pfam, references } from 'src/boot/feathers'
 import '@v-charts2/histogram/v-charts.css'
-import { useQuery } from '@pinia/colada'
+import { defineQuery, useQuery } from '@pinia/colada'
 // Types
-interface DomainMap {
-  [key: string]: {
-    pfamAcc: string
-    pfamId: string
-    clanAcc: string
-    clanId: string
-    pfamDesc: string
-  }
-}
-
-interface Prediction {
-  classes: number[]
-  top_classes: number[][]
-  top_probs: number[][]
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface Current {
-  _id: string
-  domainMap: DomainMap
-  header: string
-  predictions: Prediction
-  sequence: string
-}
 
 interface TableRow {
   start: number
@@ -286,23 +262,10 @@ const getFormated = (
 
 // Component setup
 const route = useRoute()
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const $q = useQuasar()
+
+// const $q = useQuasar()
 // const seq = ref('')
 const chartError = ref<string | null>(null)
-
-// Data
-// const current = ref<Current>({
-//   _id: '',
-//   domainMap: {},
-//   header: '',
-//   predictions: {
-//     classes: [],
-//     top_classes: [],
-//     top_probs: [],
-//   },
-//   sequence: '',
-// })
 
 const legend = ref({
   type: 'scroll',
@@ -361,6 +324,42 @@ const pfamReferenceColumns = ref<TableColumn[]>([
 
 const pfam31ReferenceData = ref<TableRow[]>([])
 const pfam32ReferenceData = ref<TableRow[]>([])
+
+interface DomainMap {
+  [key: string]: {
+    pfamAcc: string
+    pfamId: string
+    clanAcc: string
+    clanId: string
+    pfamDesc: string
+  }
+}
+
+interface Prediction {
+  classes: number[]
+  top_classes: number[][]
+  top_probs: number[][]
+}
+
+interface Current {
+  _id: string
+  domainMap: DomainMap
+  header: string
+  predictions: Prediction
+  sequence: string
+}
+// Data
+const current = ref<Current>({
+  _id: '',
+  domainMap: {},
+  header: '',
+  predictions: {
+    classes: [],
+    top_classes: [],
+    top_probs: [],
+  },
+  sequence: '',
+})
 
 // Computed properties
 const seqHeader = computed((): string => {
@@ -493,25 +492,23 @@ const pfamChartData = computed((): ChartData => {
       if (!predictions) return { columns: [], rows: [] }
 
       const aaKey = 'aa'
-      const rows = current.value.sequence
-        .split('')
-        .map((v: string | number, i: string | number) => {
-          const row: Record<string, string | number> = (predictions.top_classes[i] ?? []).reduce(
-            (a: Record<string, number>, c: number, ii: number) => {
-              if (c && current.value.domainMap[c]) {
-                const pfamId = current.value.domainMap[c].pfamId
-                a[pfamId] = predictions.top_probs[i]?.[ii] ?? 0
-                if (c === 1 && a[pfamId] !== undefined) {
-                  a[pfamId] *= -1
-                }
+      const rows = current.value.sequence.split('').map((v: string, i: number) => {
+        const row: Record<string, string | number> = (predictions.top_classes[i] ?? []).reduce(
+          (a: Record<string, number>, c: number, ii: number) => {
+            if (c && current.value.domainMap[c]) {
+              const pfamId = current.value.domainMap[c].pfamId
+              a[pfamId] = predictions.top_probs[i]?.[ii] ?? 0
+              if (c === 1 && a[pfamId] !== undefined) {
+                a[pfamId] *= -1
               }
-              return a
-            },
-            {},
-          )
-          row[aaKey] = v
-          return row
-        })
+            }
+            return a
+          },
+          {},
+        )
+        row[aaKey] = v
+        return row
+      })
 
       return {
         columns: [aaKey].concat(sortedDomains.value),
@@ -528,7 +525,15 @@ const pfamChartData = computed((): ChartData => {
 const pfamChartSettings = computed(() => {
   try {
     if (!current.value) {
-      return {}
+      return {
+        stack: { domains: [] },
+        yAxisType: ['percent'],
+        yAxisName: ['Probability'],
+        max: [1],
+        min: [-1],
+        digit: 2,
+        labelMap: {},
+      }
     } else {
       // Make sure sortedDomains exists and has values
       const domains = sortedDomains.value || []
@@ -653,26 +658,22 @@ const pfamTableData = computed((): TableRow[] => {
   }
 })
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const uniprotRe =
+  /^>(?<database>[a-z]+)\|(?<accession>[A-Z0-9]+)\|(?<entry_name>[A-Z0-9]+_[A-Z0-9]+) (?<description>.*?)(?: OS=(?<organism>.*?))?(?: GN=(?<gene>.*?))?(?: PE=(?<protein_existence>\d))?(?: SV=(?<sequence_version>\d+))?$/
+
 const uniprotAcc = computed((): string => {
-  const header = current.value.header
+  const header = current.value?.header
   if (!header || header.startsWith('>PROTEIN_')) return ''
 
-  let mid = header.match(/^>tr\|(?<id>\w+)\|/)
-  if (mid?.groups) {
-    const msv = header.match(/SV=(?<sv>\d+)/)
-    if (msv?.groups) {
-      return `${mid.groups.id}.${msv.groups.sv}`
-    }
-    return `${mid.groups.id}.1`
+  let match = header.match(uniprotRe)
+  if (match?.groups?.accession) {
+    console.log('match.groups.accession', match.groups.accession)
+    return `${match.groups.accession}.${match.groups.sequence_version ?? 1}`
   }
 
-  mid = header.match(/^>(?<id>\w+)(?:\.(?<sv>\d+))?/)
-  if (mid?.groups) {
-    if (mid.groups.sv) {
-      return `${mid.groups.id}.${mid.groups.sv}`
-    }
-    return `${mid.groups.id}.1`
+  match = header.match(/^>(?<accession>\w+)(?:\.(?<sequence_version>\d+))?/)
+  if (match?.groups?.accession) {
+    return `${match.groups.accession}.${match.groups.sequence_version ?? 1}`
   }
   return ''
 })
@@ -686,22 +687,78 @@ const clanLink = (clanAcc: string): void => {
   openURL(`http://pfam.xfam.org/clan/${clanAcc}`)
 }
 
-// interface ReferenceData {
-//   refName: string
-//   start: number
-//   end: number
-//   [key: string]: unknown
-// }
+const useReferenceData = defineQuery(() => {
+  const { data: referenceData, ...rest } = useQuery({
+    staleTime: Infinity,
+    key: () => ['references', uniprotAcc.value],
+    query: async () => {
+      // check local storage
+      if (!uniprotAcc.value) {
+        return { data: [] }
+      }
+      console.log(`Fetching references for ${uniprotAcc.value}`)
+      const cachedData = localStorage.getItem(`references-${uniprotAcc.value}`)
+      if (cachedData) {
+        return JSON.parse(cachedData)
+      }
+      const result = await references.find({ query: { seqAcc: uniprotAcc.value } })
+      localStorage.setItem(`references-${uniprotAcc.value}`, JSON.stringify(result))
+      return result
+    },
+  })
+  return { ...rest, referenceData }
+})
+const { referenceData } = useReferenceData()
+watch(
+  () => referenceData.value,
+  (newVal) => {
+    console.log('referenceData watcher', newVal)
+    try {
+      interface ReferenceData {
+        refName: string
+        start: number
+        end: number
+        [key: string]: unknown
+      }
+      if (Array.isArray(newVal?.data)) {
+        pfam32ReferenceData.value = newVal.data
+          .filter((r: ReferenceData) => r.refName === 'pfam32')
+          .sort((a: ReferenceData, b: ReferenceData) => a.start - b.start)
+        pfam31ReferenceData.value = newVal.data
+          .filter((r: ReferenceData) => r.refName === 'pfam31')
+          .sort((a: ReferenceData, b: ReferenceData) => a.start - b.start)
+      }
+    } catch (err) {
+      handleChartError(err, 'pfam32 reference data update')
+    }
+  },
+)
 
-// const queryCache = useQueryCache()
-// queryCache.$persist()
+// Add watchers for chart data to catch potential errors
+watch(
+  () => current.value,
+  (newVal) => {
+    console.log('current watcher', current.value)
+    try {
+      // Reset chart error when new data is loaded
+      chartError.value = null
+      // Basic validation
+      if (!newVal || !newVal.sequence || !newVal.predictions) {
+        chartError.value = 'Incomplete data for chart rendering'
+      }
+    } catch (err) {
+      handleChartError(err, 'data update')
+    }
+  },
+)
 
-const { data: current } = useQuery({
+const { data: pfamData, isLoading } = useQuery({
   staleTime: Infinity,
   key: () => ['pfam', route.params.id as string],
   query: async () => {
     // check local storage
     const id = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id
+    console.log(`Fetching Pfam data for ${id}`)
     if (!id) {
       throw new Error('ID is undefined')
     }
@@ -709,85 +766,50 @@ const { data: current } = useQuery({
     if (cachedData) {
       return JSON.parse(cachedData)
     }
-    return await pfam.get(id)
+    const result = await pfam.get(id)
+    localStorage.setItem(`pfam-${id}`, JSON.stringify(result))
+    return result
   },
 })
 
-// const {
-//   data: current,
-// } = useQuery({
-//   staleTime: Infinity,
-//   key: () => ['pfam', route.params.id as string],
-//   query: () => pfam.get(route.params.id as string),
-// })
+if (pfamData.value) {
+  current.value = pfamData.value
+} else {
+  current.value = {
+    _id: '',
+    domainMap: {},
+    header: '',
+    predictions: {
+      classes: [],
+      top_classes: [],
+      top_probs: [],
+    },
+    sequence: '',
+  }
+}
 
-// const fetchData = async (): Promise<void> => {
-//   const id = route.params.id as string
-//   console.log(id)
-//   chartError.value = null
-
-//   try {
-//     // try fetch from server
-//     const result = await pfam.get(id)
-//     current.value = result
-//     // seq.value = `${current.value.header}\n${current.value.sequence}`
-
-//     // Validate data structure for chart
-//     if (!result.sequence || !result.predictions || !result.domainMap) {
-//       chartError.value = 'Incomplete data received from server'
-//     }
-//   } catch (error) {
-//     // Set chart error
-//     chartError.value = error instanceof Error ? error.message : 'Failed to load data'
-
-//     // Notify user about error
-//     $q.notify({
-//       position: 'center',
-//       message: 'Result does not exist',
-//       actions: [{ label: 'Dismiss' }],
-//     })
-//   }
-
-//   try {
-//     // fetch reference
-//     if (uniprotAcc.value) {
-//       // try fetch from server
-//       const result = await references.find({ query: { seqAcc: uniprotAcc.value } })
-//       pfam32ReferenceData.value = result.data
-//         .filter((r: ReferenceData) => r.refName === 'pfam32')
-//         .sort((a: ReferenceData, b: ReferenceData) => a.start - b.start)
-//       pfam31ReferenceData.value = result.data
-//         .filter((r: ReferenceData) => r.refName === 'pfam31')
-//         .sort((a: ReferenceData, b: ReferenceData) => a.start - b.start)
-//     }
-//   } catch (error) {
-//     console.error('Error fetching reference data:', error)
-//     $q.notify({
-//       position: 'bottom',
-//       color: 'warning',
-//       message: 'Failed to load reference data',
-//       actions: [{ label: 'Dismiss' }],
-//     })
-//   }
-// }
-
-// fetch data immediately on load and when the route changes
-// watch(() => route.params.id, fetchData, { immediate: true })
-
-// Add watchers for chart data to catch potential errors
 watch(
-  () => current.value,
+  () => pfamData.value,
   (newVal) => {
+    console.log('pfamData watcher', newVal)
     try {
-      // Reset chart error when new data is loaded
-      chartError.value = null
-
-      // Basic validation
-      if (!newVal || !newVal.sequence || !newVal.predictions) {
-        chartError.value = 'Incomplete data for chart rendering'
+      if (newVal) {
+        current.value = newVal
+      } else {
+        current.value = {
+          _id: '',
+          domainMap: {},
+          header: '',
+          predictions: {
+            classes: [],
+            top_classes: [],
+            top_probs: [],
+          },
+          sequence: '',
+        }
       }
     } catch (err) {
-      handleChartError(err, 'data update')
+      handleChartError(err, 'pfam data update')
     }
   },
 )
@@ -844,6 +866,16 @@ const isChartDataValid = computed((): boolean => {
     // Ensure settings are valid
     const settings = pfamChartSettings.value
     if (!settings || !settings.stack || !settings.yAxisType || !settings.yAxisName) {
+      return false
+    }
+
+    // Check for domain map consistency
+    const domains = sortedDomains.value
+    if (domains.length === 0 && current.value && current.value.sequence) {
+      return false
+    }
+
+    if (isLoading.value) {
       return false
     }
 
