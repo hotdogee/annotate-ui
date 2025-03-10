@@ -32,6 +32,34 @@
         </div>
       </q-banner>
     </div>
+
+    <!-- New ECharts-based chart -->
+    <div class="q-my-md">
+      <div class="text-subtitle1 q-mb-sm">Echarts Domain Visualization (New)</div>
+      <div
+        v-if="isChartDataValid"
+        ref="echartsContainer"
+        :key="forceRender"
+        style="width: 100%; height: 400px"
+      ></div>
+      <div v-else class="q-pa-md">
+        <q-banner rounded class="bg-grey-2">
+          <template v-slot:avatar>
+            <q-icon name="error" color="warning" size="md" />
+          </template>
+          <div class="text-subtitle1">Unable to display domain visualization chart</div>
+          <div class="q-mt-sm" v-if="chartError">
+            <span class="text-caption">Error details: {{ chartError }}</span>
+          </div>
+          <div class="q-mt-sm">
+            <span class="text-caption"
+              >You can still view the domain data in the tables below.</span
+            >
+          </div>
+        </q-banner>
+      </div>
+    </div>
+
     <q-table
       :title="pfamTableTitle"
       :rows="pfamTableData"
@@ -164,7 +192,7 @@
 <style lang="stylus"></style>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 // import { useQuasar } from 'quasar'
 import numerify from 'numerify'
@@ -176,6 +204,7 @@ import VeHistogram from '@v-charts2/histogram'
 import { pfam, references } from 'src/boot/feathers'
 import '@v-charts2/histogram/v-charts.css'
 import { defineQuery, useQuery } from '@pinia/colada'
+import * as echarts from 'echarts'
 // Types
 
 interface TableRow {
@@ -266,6 +295,7 @@ const route = useRoute()
 // const $q = useQuasar()
 // const seq = ref('')
 const chartError = ref<string | null>(null)
+const forceRender = ref(0) // Add a key to force component re-render
 
 const legend = ref({
   type: 'scroll',
@@ -273,16 +303,37 @@ const legend = ref({
   left: 10,
 })
 
+// Watch for route changes to handle navigation
+watch(
+  () => route.params.id,
+  () => {
+    // Force chart re-render when route changes
+    forceRender.value++
+    // Clean up old chart instance
+    if (echartsInstance) {
+      echartsInstance.dispose()
+      echartsInstance = null
+    }
+    // Initialize new chart after a short delay to ensure DOM is ready
+    setTimeout(() => {
+      renderEcharts()
+    }, 100)
+  },
+)
+
 const tooltip = ref({
   trigger: 'axis',
   formatter(items: ChartItem[]) {
+    // console.log('tooltip formatter', items)
     const tpl: string[] = []
     if (items && items.length > 0 && items[0]) {
       tpl.push(`${items[0].dataIndex + 1}: ${items[0].name}<br>`)
       items
         .sort((a, b) => Math.abs(b.value || 0) - Math.abs(a.value || 0))
         .forEach((item) => {
+          // console.log(`item ${i}`, item)
           if (isNaN(item.value)) return
+          // console.log(`isNaN ${i}`, item)
           const seriesName = item.seriesName
           const type = 'percent'
           const digit = 2
@@ -292,6 +343,7 @@ const tooltip = ref({
           tpl.push('<br>')
         })
     }
+    // console.log('tooltip formatter', tpl.join(''))
     return tpl.join('')
   },
 })
@@ -309,7 +361,6 @@ const pfamTableColumns = ref<TableColumn[]>([
   { name: 'clanAcc', label: 'Clan accession', field: 'clanAcc', sortable: true },
   { name: 'clanId', label: 'Clan ID', field: 'clanId', sortable: true },
   { name: 'pfamDesc', label: 'Pfam description', field: 'pfamDesc', sortable: false },
-  { name: 'score', label: 'Score', field: 'score', sortable: true },
 ])
 
 const pfamReferenceColumns = ref<TableColumn[]>([
@@ -883,6 +934,193 @@ const isChartDataValid = computed((): boolean => {
   } catch (err) {
     handleChartError(err, 'chart data validation')
     return false
+  }
+})
+
+// ECharts setup
+const echartsContainer = ref<HTMLElement | null>(null)
+let echartsInstance: echarts.ECharts | null = null
+
+// Define interfaces for ECharts parameters
+interface EChartsTooltipParam {
+  dataIndex: number
+  seriesName: string
+  value: number
+  color: string
+  name?: string
+}
+
+// Convert v-charts settings to echarts format
+const getEchartsOptions = () => {
+  try {
+    if (!isChartDataValid.value) {
+      return null
+    }
+
+    const chartData = pfamChartData.value
+    // Use chartSettings directly from computed property instead
+    const domains = sortedDomains.value
+
+    // Generate series for each domain
+    const series = domains.map((domain) => {
+      return {
+        name: labelMap.value[domain] || domain,
+        type: 'bar',
+        stack: 'domains',
+        data: chartData.rows.map((row) => row[domain]),
+      }
+    })
+
+    // Create tooltip formatter similar to the one in v-charts
+    const tooltipFormatter = (params: EChartsTooltipParam | EChartsTooltipParam[]) => {
+      // console.log('tooltipFormatter', params)
+      const tpl: string[] = []
+      // Convert to array if it's a single item
+      const paramsArray = Array.isArray(params) ? params : [params]
+
+      if (paramsArray.length > 0 && paramsArray[0]) {
+        // Position in sequence (1-indexed)
+        const position = paramsArray[0].dataIndex + 1
+        // Show amino acid at this position
+        const aa = chartData.rows[paramsArray[0].dataIndex]?.aa
+        tpl.push(`${position}: ${aa}<br>`)
+
+        // Sort items by absolute value like in original chart
+        paramsArray
+          .sort((a, b) => Math.abs(b.value || 0) - Math.abs(a.value || 0))
+          .forEach((item) => {
+            // console.log(`item ${i}`, item)
+            if (isNaN(item.value)) return
+            // console.log(`isNaN ${i}`, item)
+            const seriesName = item.seriesName
+            const value = item.value
+            tpl.push(
+              `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${item.color};"></span>`,
+            )
+            tpl.push(`${seriesName}: `)
+            // Format as percentage with 2 decimal places
+            tpl.push(`${(value * 100).toFixed(2)}%`)
+            tpl.push('<br>')
+          })
+      }
+      return tpl.join('')
+    }
+
+    const option = {
+      tooltip: {
+        trigger: 'axis' as const,
+        axisPointer: {
+          type: 'shadow' as const,
+        },
+        formatter: tooltipFormatter,
+      },
+      legend: {
+        type: 'scroll' as const,
+        align: 'left' as const,
+        left: 10,
+        data: domains.map((domain) => labelMap.value[domain] || domain),
+      },
+      grid: {
+        containLabel: true,
+        left: 20,
+        right: 20,
+        bottom: 20,
+      },
+      xAxis: {
+        type: 'category' as const,
+        data: chartData.rows.map((row) => row.aa as string), // Show amino acids like in original chart
+        silent: false,
+        axisLabel: {
+          show: true,
+        },
+        axisTick: { alignWithLabel: true },
+      },
+      yAxis: {
+        type: 'value' as const,
+        min: -1,
+        max: 1,
+        axisLabel: {
+          formatter: (value: number) => {
+            // Format as percent
+            return `${Math.abs(value * 100)}%`
+          },
+        },
+        name: 'Probability',
+      },
+      series: series,
+      // animation: false, // Disable animation for better performance with large datasets
+      color: [
+        '#19d4ae',
+        '#5ab1ef',
+        '#fa6e86',
+        '#ffb980',
+        '#0067a6',
+        '#c4b4e4',
+        '#d87a80',
+        '#9cbbff',
+        '#d9d0c7',
+        '#87a997',
+        '#d49ea2',
+        '#5b4947',
+        '#7ba3a8',
+      ],
+    }
+
+    return option
+  } catch (err) {
+    handleChartError(err, 'echarts option generation')
+    return null
+  }
+}
+
+const renderEcharts = () => {
+  try {
+    if (!echartsContainer.value || !isChartDataValid.value) return
+
+    if (!echartsInstance) {
+      // Initialize chart
+      echartsInstance = echarts.init(echartsContainer.value)
+
+      // Handle resize
+      const resizeHandler = () => {
+        echartsInstance?.resize()
+      }
+      window.addEventListener('resize', resizeHandler)
+    }
+
+    const option = getEchartsOptions()
+    if (option) {
+      echartsInstance.setOption(option, true) // Use true to clear previous options
+    }
+  } catch (err) {
+    handleChartError(err, 'echarts rendering')
+  }
+}
+
+// Setup and cleanup for echarts
+onMounted(() => {
+  renderEcharts()
+})
+
+watch(
+  [isChartDataValid, () => pfamChartData.value, () => sortedDomains.value, () => labelMap.value],
+  () => {
+    // Delay rendering to ensure DOM is updated
+    setTimeout(renderEcharts, 0)
+  },
+)
+
+// Use Vue 3 onUnmounted hook for proper cleanup
+onMounted(() => {
+  // Initial render
+  renderEcharts()
+})
+
+// Handle component unmount with Vue 3 syntax
+onUnmounted(() => {
+  if (echartsInstance) {
+    echartsInstance.dispose()
+    echartsInstance = null
   }
 })
 </script>
