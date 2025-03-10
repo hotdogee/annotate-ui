@@ -11,31 +11,7 @@
     <div class="row">
       <div class="q-my-sm text-subtitle1">Sequence Length: {{ seqLength }} aa</div>
     </div>
-    <ve-histogram
-      v-if="isChartDataValid"
-      :data="pfamChartData"
-      :settings="pfamChartSettings"
-      :legend="legend"
-      :tooltip="tooltip"
-    ></ve-histogram>
-    <div v-else class="q-pa-md">
-      <q-banner rounded class="bg-grey-2">
-        <template v-slot:avatar>
-          <q-icon name="error" color="warning" size="md" />
-        </template>
-        <div class="text-subtitle1">Unable to display domain visualization chart</div>
-        <div class="q-mt-sm" v-if="chartError">
-          <span class="text-caption">Error details: {{ chartError }}</span>
-        </div>
-        <div class="q-mt-sm">
-          <span class="text-caption">You can still view the domain data in the tables below.</span>
-        </div>
-      </q-banner>
-    </div>
-
-    <!-- New ECharts-based chart -->
     <div class="q-my-md">
-      <div class="text-subtitle1 q-mb-sm">Echarts Domain Visualization (New)</div>
       <div
         v-if="isChartDataValid"
         ref="echartsContainer"
@@ -194,15 +170,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
-// import { useQuasar } from 'quasar'
-import numerify from 'numerify'
 import { openURL } from 'quasar'
-import { isFunction } from 'utils-lite'
-import VeHistogram from '@v-charts2/histogram'
-// import SearchInput from 'components/SearchInput.vue'
-
 import { pfam, references } from 'src/boot/feathers'
-import '@v-charts2/histogram/v-charts.css'
 import { defineQuery, useQuery } from '@pinia/colada'
 import * as echarts from 'echarts'
 // Types
@@ -231,77 +200,11 @@ interface ChartData {
   rows: Record<string, string | number>[]
 }
 
-interface ChartItem {
-  dataIndex: number
-  name: string
-  value: number
-  seriesName: string
-  color: string
-}
-
-type FormatterFunction = (val: number, numerifyFn: typeof numerify) => string
-
-// Helper functions
-const itemPoint = (color: string): string => {
-  return [
-    '<span style="',
-    `background-color:${color};`,
-    'display: inline-block;',
-    'width: 10px;',
-    'height: 10px;',
-    'border-radius: 50%;',
-    'margin-right:2px;',
-    '"></span>',
-  ].join('')
-}
-
-const getFormated = (
-  val: number,
-  type: string | FormatterFunction,
-  digit: number,
-  defaultVal = '-',
-): string => {
-  if (isNaN(val)) return defaultVal
-  if (!type) return val.toString()
-  if (isFunction(type)) return (type as FormatterFunction)(val, numerify)
-
-  digit = isNaN(digit) ? 0 : ++digit
-  // Create a string with the appropriate number of zeros
-  const digitStr = `.[${digit > 0 ? '0'.repeat(digit) : ''}]`
-  let formatter = type
-  switch (type) {
-    case 'KMB':
-      formatter = digit ? `0,0${digitStr}a` : '0,0a'
-      break
-    case 'normal':
-      formatter = digit ? `0,0${digitStr}` : '0,0'
-      break
-    case 'percent':
-      formatter = digit ? `0,0${digitStr}%` : '0,0.[00]%'
-      break
-  }
-
-  // Handle case when formatter is a function
-  if (typeof formatter === 'function') {
-    return formatter(val, numerify)
-  }
-
-  return numerify(val, formatter)
-}
-
 // Component setup
 const route = useRoute()
 
-// const $q = useQuasar()
-// const seq = ref('')
 const chartError = ref<string | null>(null)
 const forceRender = ref(0) // Add a key to force component re-render
-
-const legend = ref({
-  type: 'scroll',
-  align: 'left',
-  left: 10,
-})
 
 // Watch for route changes to handle navigation
 watch(
@@ -320,33 +223,6 @@ watch(
     }, 100)
   },
 )
-
-const tooltip = ref({
-  trigger: 'axis',
-  formatter(items: ChartItem[]) {
-    // console.log('tooltip formatter', items)
-    const tpl: string[] = []
-    if (items && items.length > 0 && items[0]) {
-      tpl.push(`${items[0].dataIndex + 1}: ${items[0].name}<br>`)
-      items
-        .sort((a, b) => Math.abs(b.value || 0) - Math.abs(a.value || 0))
-        .forEach((item) => {
-          // console.log(`item ${i}`, item)
-          if (isNaN(item.value)) return
-          // console.log(`isNaN ${i}`, item)
-          const seriesName = item.seriesName
-          const type = 'percent'
-          const digit = 2
-          tpl.push(itemPoint(item.color))
-          tpl.push(`${seriesName}: `)
-          tpl.push(getFormated(item.value, type, digit))
-          tpl.push('<br>')
-        })
-    }
-    // console.log('tooltip formatter', tpl.join(''))
-    return tpl.join('')
-  },
-})
 
 const pfamTableTitle = ref('')
 const pagination = ref({
@@ -971,6 +847,20 @@ const getEchartsOptions = () => {
       }
     })
 
+    // Helper functions
+    const itemPoint = (color: string): string => {
+      return [
+        '<span style="',
+        `background-color:${color};`,
+        'display: inline-block;',
+        'width: 10px;',
+        'height: 10px;',
+        'border-radius: 50%;',
+        'margin-right:2px;',
+        '"></span>',
+      ].join('')
+    }
+
     // Create tooltip formatter similar to the one in v-charts
     const tooltipFormatter = (params: EChartsTooltipParam | EChartsTooltipParam[]) => {
       // console.log('tooltipFormatter', params)
@@ -994,9 +884,7 @@ const getEchartsOptions = () => {
             // console.log(`isNaN ${i}`, item)
             const seriesName = item.seriesName
             const value = item.value
-            tpl.push(
-              `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${item.color};"></span>`,
-            )
+            tpl.push(itemPoint(item.color))
             tpl.push(`${seriesName}: `)
             // Format as percentage with 2 decimal places
             tpl.push(`${(value * 100).toFixed(2)}%`)
