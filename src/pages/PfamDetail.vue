@@ -1,171 +1,261 @@
 <template>
   <q-page padding>
-    <div class="row">
-      <div class="text-h5">Pfam Domain Prediction Results</div>
-    </div>
-    <div class="row">
-      <div class="q-my-sm text-h6">
-        {{ seqHeader }}
-      </div>
-    </div>
-    <div class="row">
-      <div class="q-my-sm text-subtitle1">Sequence Length: {{ seqLength }} aa</div>
-    </div>
-    <div class="q-my-md">
-      <div
-        v-if="isChartDataValid"
-        ref="echartsContainer"
-        :key="forceRender"
-        style="width: 100%; height: 400px"
-      ></div>
-      <div v-else class="q-pa-md">
-        <q-banner rounded class="bg-grey-2">
-          <template v-slot:avatar>
-            <q-icon name="error" color="warning" size="md" />
-          </template>
-          <div class="text-subtitle1">Unable to display domain visualization chart</div>
-          <div class="q-mt-sm" v-if="chartError">
-            <span class="text-caption">Error details: {{ chartError }}</span>
+    <!-- Header section -->
+    <div class="header-section q-pb-sm">
+      <div class="text-h4 text-primary">Pfam Domain Prediction Results</div>
+      <q-separator class="q-mb-md" />
+      <q-card flat bordered class="bg-grey-1">
+        <q-card-section>
+          <div class="text-h6 text-weight-medium">{{ seqHeader }}</div>
+          <div class="text-subtitle1 q-mt-sm">
+            Sequence Length: <span class="text-weight-medium">{{ seqLength }}</span> amino acids
           </div>
-          <div class="q-mt-sm">
-            <span class="text-caption"
-              >You can still view the domain data in the tables below.</span
-            >
-          </div>
-        </q-banner>
-      </div>
+        </q-card-section>
+      </q-card>
     </div>
 
-    <q-table
-      :title="pfamTableTitle"
-      :rows="pfamTableData"
-      :columns="pfamTableColumns"
-      v-model:pagination="pagination"
-      row-key="start"
-    >
-      <!-- slot name syntax: body-cell-<column_name> -->
-      <template #body-cell-pfamAcc="props">
-        <q-td :props="props">
-          <q-btn
-            icon-right="open_in_new"
-            :label="props.value"
-            color="secondary"
+    <!-- Chart section -->
+    <div class="chart-section q-pb-sm">
+      <q-card flat bordered>
+        <q-card-section>
+          <div class="text-h6 text-primary q-mb-md">Domain Distribution Visualization</div>
+          <div class="chart-container">
+            <div
+              v-if="isChartDataValid"
+              ref="echartsContainer"
+              :key="forceRender"
+              class="chart-area"
+            ></div>
+            <div v-else class="error-container">
+              <q-banner rounded class="bg-grey-2">
+                <template v-slot:avatar>
+                  <q-icon name="error" color="warning" size="md" />
+                </template>
+                <div class="text-subtitle1">Unable to display domain visualization chart</div>
+                <div class="q-mt-sm" v-if="chartError">
+                  <span class="text-caption">Error details: {{ chartError }}</span>
+                </div>
+                <div class="q-mt-sm">
+                  <span class="text-caption"
+                    >You can still view the domain data in the tables below.</span
+                  >
+                </div>
+              </q-banner>
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
+    </div>
+
+    <!-- Prediction Results Table -->
+    <div class="tables-section">
+      <q-card flat bordered class="q-mb-lg">
+        <q-card-section>
+          <div class="text-h6 text-primary q-pb-md">
+            {{ pfamTableTitle || 'Predicted Domains' }}
+          </div>
+          <q-table
+            :rows="pfamTableData"
+            :columns="pfamTableColumns"
+            v-model:pagination="pagination"
+            row-key="start"
             flat
-            dense
-            @click="familyLink(props.value)"
-          ></q-btn>
-        </q-td>
+            bordered
+            class="rounded-borders"
+          >
+            <template #body-cell-pfamAcc="props">
+              <q-td :props="props">
+                <q-btn
+                  icon-right="open_in_new"
+                  :label="props.value"
+                  color="secondary"
+                  flat
+                  dense
+                  class="text-weight-medium"
+                  @click="familyLink(props.value)"
+                ></q-btn>
+              </q-td>
+            </template>
+            <template #body-cell-clanAcc="props">
+              <q-td :props="props">
+                <q-btn
+                  icon-right="open_in_new"
+                  :label="props.value"
+                  color="secondary"
+                  flat
+                  dense
+                  class="text-weight-medium"
+                  @click="clanLink(props.value)"
+                ></q-btn>
+              </q-td>
+            </template>
+          </q-table>
+        </q-card-section>
+      </q-card>
+
+      <!-- Reference Data Tables -->
+      <template v-if="pfam32ReferenceData.length > 0 || pfam31ReferenceData.length > 0">
+        <div class="text-h6 text-primary q-pb-md">Reference Data</div>
+
+        <q-card v-if="pfam32ReferenceData.length > 0" flat bordered class="q-mb-md">
+          <q-card-section>
+            <div class="text-subtitle1 text-weight-medium q-pb-md">Pfam32 Reference Data</div>
+            <q-table
+              :rows="pfam32ReferenceData"
+              :columns="pfamReferenceColumns"
+              v-model:pagination="pagination"
+              row-key="start"
+              flat
+              bordered
+              class="rounded-borders"
+            >
+              <!-- Reuse the same templates as above -->
+              <template #body-cell-pfamAcc="props">
+                <q-td :props="props">
+                  <q-btn
+                    icon-right="open_in_new"
+                    :label="props.value"
+                    color="secondary"
+                    flat
+                    dense
+                    class="text-weight-medium"
+                    @click="familyLink(props.value)"
+                  ></q-btn>
+                </q-td>
+              </template>
+              <template #body-cell-clanAcc="props">
+                <q-td :props="props">
+                  <q-btn
+                    icon-right="open_in_new"
+                    :label="props.value"
+                    color="secondary"
+                    flat
+                    dense
+                    class="text-weight-medium"
+                    @click="clanLink(props.value)"
+                  ></q-btn>
+                </q-td>
+              </template>
+            </q-table>
+          </q-card-section>
+        </q-card>
+
+        <q-card v-if="pfam31ReferenceData.length > 0" flat bordered>
+          <q-card-section>
+            <div class="text-subtitle1 text-weight-medium q-pb-md">Pfam31 Reference Data</div>
+            <q-table
+              :rows="pfam31ReferenceData"
+              :columns="pfamReferenceColumns"
+              v-model:pagination="pagination"
+              row-key="start"
+              flat
+              bordered
+              class="rounded-borders"
+            >
+              <!-- Reuse the same templates as above -->
+              <template #body-cell-pfamAcc="props">
+                <q-td :props="props">
+                  <q-btn
+                    icon-right="open_in_new"
+                    :label="props.value"
+                    color="secondary"
+                    flat
+                    dense
+                    class="text-weight-medium"
+                    @click="familyLink(props.value)"
+                  ></q-btn>
+                </q-td>
+              </template>
+              <template #body-cell-clanAcc="props">
+                <q-td :props="props">
+                  <q-btn
+                    icon-right="open_in_new"
+                    :label="props.value"
+                    color="secondary"
+                    flat
+                    dense
+                    class="text-weight-medium"
+                    @click="clanLink(props.value)"
+                  ></q-btn>
+                </q-td>
+              </template>
+            </q-table>
+          </q-card-section>
+        </q-card>
       </template>
-      <template #body-cell-clanAcc="props">
-        <q-td :props="props">
-          <q-btn
-            icon-right="open_in_new"
-            :label="props.value"
-            color="secondary"
-            flat
-            dense
-            @click="clanLink(props.value)"
-          ></q-btn>
-        </q-td>
-      </template>
-    </q-table>
-    <br />
-    <q-table
-      v-if="pfam32ReferenceData.length > 0"
-      title="Pfam32 Reference Data"
-      :rows="pfam32ReferenceData"
-      :columns="pfamReferenceColumns"
-      v-model:pagination="pagination"
-      row-key="start"
-    >
-      <template #body-cell-pfamAcc="props">
-        <q-td :props="props">
-          <q-btn
-            icon-right="open_in_new"
-            :label="props.value"
-            color="secondary"
-            flat
-            dense
-            @click="familyLink(props.value)"
-          ></q-btn>
-        </q-td>
-      </template>
-      <template #body-cell-clanAcc="props">
-        <q-td :props="props">
-          <q-btn
-            icon-right="open_in_new"
-            :label="props.value"
-            color="secondary"
-            flat
-            dense
-            @click="clanLink(props.value)"
-          ></q-btn>
-        </q-td>
-      </template>
-    </q-table>
-    <br />
-    <q-table
-      v-if="pfam31ReferenceData.length > 0"
-      title="Pfam31 Reference Data"
-      :rows="pfam31ReferenceData"
-      :columns="pfamReferenceColumns"
-      v-model:pagination="pagination"
-      row-key="start"
-    >
-      <template #body-cell-pfamAcc="props">
-        <q-td :props="props">
-          <q-btn
-            icon-right="open_in_new"
-            :label="props.value"
-            color="secondary"
-            flat
-            dense
-            @click="familyLink(props.value)"
-          ></q-btn>
-        </q-td>
-      </template>
-      <template #body-cell-clanAcc="props">
-        <q-td :props="props">
-          <q-btn
-            icon-right="open_in_new"
-            :label="props.value"
-            color="secondary"
-            flat
-            dense
-            @click="clanLink(props.value)"
-          ></q-btn>
-        </q-td>
-      </template>
-    </q-table>
-    <!-- <hr class="q-hr q-my-xl" /> -->
-    <!-- <q-input
-      v-model="pfamClasses"
-      float-label="Classes"
-      type="textarea"
-    />
-    <q-input
-      v-model="pfamDomainMap"
-      float-label="DomainMap"
-      type="textarea"
-    />
-    <q-input
-      v-model="pfamTopClasses"
-      float-label="TopClasses"
-      type="textarea"
-    />
-    <q-input
-      v-model="pfamTopProbs"
-      float-label="TopProbs"
-      type="textarea"
-    />-->
-    <!-- <div class="row justify-center">
-      <img class="center" alt="ANNotate logo" src="~assets/annotate-logo-long-v2-h92.png" />
-    </div> -->
-    <!-- <search-input v-model:seq="seq"></search-input> -->
+    </div>
   </q-page>
 </template>
 
-<style lang="stylus"></style>
+<style lang="scss">
+.header-section {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.chart-section {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.chart-card {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.chart-container {
+  position: relative;
+  min-height: 400px;
+}
+
+.chart-area {
+  width: 100%;
+  height: 400px;
+  transition: all 0.3s ease;
+}
+
+.error-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  padding: 1rem;
+}
+
+.tables-section {
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .q-table {
+    background: white;
+
+    thead tr th {
+      font-weight: 500;
+      color: #205b13;
+    }
+
+    tbody tr:hover {
+      background: rgba(32, 91, 19, 0.05);
+    }
+  }
+
+  .q-card {
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+  }
+}
+
+// Keep existing script section...
+</style>
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
