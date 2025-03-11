@@ -1,28 +1,30 @@
 <template>
   <q-layout view="lHh Lpr fff">
-    <q-header elevated class="">
-      <q-toolbar color="primary">
-        <q-btn flat dense round aria-label="Home" @click="$router.push('/')">
+    <q-header elevated>
+      <q-toolbar class="header-toolbar">
+        <q-btn flat dense round aria-label="Home" @click="$router.push('/')" class="home-btn">
           <q-icon name="home" />
         </q-btn>
 
         <q-toolbar-title class="title">
-          <q-item-label>ANNotate</q-item-label>
-          <q-item-label class="text-caption" lines="1">
-            Protein Annotation using Neural Networks
-          </q-item-label>
+          <div class="brand-section">
+            <q-item-label class="text-h5 brand-name">ANNotate</q-item-label>
+            <q-item-label class="text-subtitle2 brand-subtitle" lines="1">
+              Protein Annotation using Neural Networks
+            </q-item-label>
+          </div>
         </q-toolbar-title>
       </q-toolbar>
     </q-header>
 
-    <q-footer elevated class="text-overline text-grey-5 bg-grey-9">
-      <q-toolbar>
-        <q-item-section>
-          <q-item-label lines="1">
-            Made with <span class="text-red-14">❤</span> by Han Lin (hotdogee)
+    <q-footer elevated class="footer">
+      <q-toolbar class="footer-toolbar">
+        <q-item-section class="creator-section">
+          <q-item-label lines="1" class="creator-text">
+            Made with <span class="heart">❤</span> by Han Lin (hotdogee)
           </q-item-label>
         </q-item-section>
-        <q-space></q-space>
+        <q-space />
         <div class="copyright">© {{ new Date().getFullYear() }}</div>
         <q-select
           v-model="selectedLocale"
@@ -32,11 +34,12 @@
           emit-value
           map-options
           :options="localeOptions"
+          class="locale-select"
         />
       </q-toolbar>
     </q-footer>
 
-    <q-page-container>
+    <q-page-container class="page-container">
       <router-view />
     </q-page-container>
   </q-layout>
@@ -85,17 +88,98 @@ defineExpose({
 })
 </script>
 
-<style>
+<style lang="scss">
+.header-toolbar {
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.brand-section {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0;
+}
+
+.brand-name {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.brand-subtitle {
+  opacity: 0.9;
+  font-weight: 400;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.footer {
+  background: linear-gradient(to right, #1a1a1a, #2d2d2d);
+}
+
+.footer-toolbar {
+  padding: 0.75rem 1.5rem;
+}
+
+.creator-section {
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.creator-text {
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.heart {
+  color: #ff4081;
+  display: inline-block;
+  animation: heartbeat 1.5s ease infinite;
+}
+
 .copyright {
   min-width: 4.041rem;
   white-space: nowrap;
   overflow: hidden;
+  opacity: 0.8;
+  margin: 0 1rem;
 }
-.title {
-  line-height: 2rem;
-  font-size: 1.125rem;
+
+.locale-select {
+  min-width: 80px;
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+
+  &:hover {
+    opacity: 1;
+  }
 }
-.title .text-caption {
-  margin-top: 0px;
+
+.page-container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.3);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.3);
+  }
+  70% {
+    transform: scale(1);
+  }
 }
 </style>
