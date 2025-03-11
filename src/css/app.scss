@@ -1,11 +1,12 @@
-// app global css in SCSS form
+@import 'tailwindcss';
+
 @font-face {
   font-family: 'monospace';
   src: url('./fonts/IBMPlexMono-Regular.ttf');
 }
 @font-face {
   font-family: 'title';
-  src: url('./fonts/MPLUS1-SemiBold.ttf');
+  src: url('./fonts/Gabarito-VariableFont_wght.ttf');
 }
 .title-font {
   font-family: 'title';
