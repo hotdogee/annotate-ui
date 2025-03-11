@@ -1,12 +1,19 @@
 <template>
   <q-layout view="lHh Lpr fff">
-    <q-header elevated>
+    <q-header class="transparent text-primary">
       <q-toolbar class="header-toolbar">
-        <q-btn flat dense round aria-label="Home" @click="$router.push('/')" class="home-btn">
+        <q-btn
+          v-if="!isIndexPage"
+          flat
+          dense
+          round
+          aria-label="Home"
+          @click="$router.push('/')"
+          class="home-btn"
+        >
           <q-icon name="home" />
         </q-btn>
-
-        <q-toolbar-title class="title">
+        <q-toolbar-title class="title" v-if="!isIndexPage">
           <div class="brand-section">
             <q-item-label class="text-h5 brand-name">ANNotate</q-item-label>
             <q-item-label class="text-subtitle2 brand-subtitle" lines="1">
@@ -39,7 +46,7 @@
       </q-toolbar>
     </q-footer>
 
-    <q-page-container class="page-container">
+    <q-page-container class="page-container" :style="pageContainerStyle">
       <router-view />
     </q-page-container>
   </q-layout>
@@ -48,9 +55,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { openURL } from 'quasar'
+import { useRoute } from 'vue-router'
 import { useSystemStore } from '../stores/systemStore'
 import { useLocalSettingsStore } from '../stores/localSettingsStore'
 import { storeToRefs } from 'pinia'
+
+// Router setup
+const route = useRoute()
 
 // Store setup
 const systemStore = useSystemStore()
@@ -76,6 +87,16 @@ const selectedLocale = computed({
   set: (newLocale) => {
     locale.value = newLocale
   },
+})
+
+// Check if the current route is showing IndexPage
+const isIndexPage = computed(() => {
+  return route.path === '/' || route.path === '/pfam'
+})
+
+// Apply padding-top: 0px style only for IndexPage
+const pageContainerStyle = computed(() => {
+  return isIndexPage.value ? { 'padding-top': '0px' } : {}
 })
 
 // Lifecycle hooks

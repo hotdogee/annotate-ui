@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <div class="">
     <div class="row justify-center">
-      <div class="col-xs-12 col-sm-10 col-lg-8">
+      <div class="col-xs-12">
         <div class="row no-wrap q-field-floating">
           <q-btn
             id="example-btn"
@@ -120,16 +120,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, type Ref } from 'vue'
+import { useMutation, useQueryCache } from '@pinia/colada'
 import { useVuelidate } from '@vuelidate/core'
 import { maxLength } from '@vuelidate/validators'
-import { isProtein } from 'assets/validators'
 import { useStorage } from '@vueuse/core'
-import { useRouter } from 'vue-router'
+import { isProtein } from 'assets/validators'
+import { md5 } from 'js-md5'
 import { useQuasar } from 'quasar'
 import { pfam } from 'src/boot/feathers'
-import { useMutation, useQueryCache } from '@pinia/colada'
-import { md5 } from 'js-md5'
+import { computed, onMounted, ref, type Ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const seq = defineModel('seq', {
   type: String,

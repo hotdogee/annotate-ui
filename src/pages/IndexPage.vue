@@ -1,21 +1,21 @@
 <template>
-  <q-page padding>
+  <q-page>
     <div class="hero-section">
       <div class="content-container">
         <div class="logo-container">
           <img class="logo" alt="ANNotate logo" src="~assets/annotate-logo-large.png" />
         </div>
         <div class="hero-text">
-          <h1 class="text-h2 text-weight-medium q-mb-md">ANNoate</h1>
-          <p class="text-subtitle1 text-grey-8">
-            Discover protein domains using our state-of-the-art neural network model. Simply paste
-            your protein sequence below to get started.
-          </p>
+          <div class="title-font mb-2 scale-x-115 text-6xl tracking-wider">ANNoate</div>
+          <div class="text-base text-gray-500">
+            Discover protein domains using our state-of-the-art neural network model. <br />Simply
+            paste your protein sequence below to get started.
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="search-container">
+    <div class="mx-auto mb-7 max-w-4xl">
       <q-card flat bordered class="search-card">
         <q-card-section>
           <search-input v-model:seq="seq"></search-input>
@@ -25,7 +25,7 @@
 
     <div class="features-section">
       <div class="row q-col-gutter-md">
-        <div class="col-12 col-sm-4">
+        <div class="col-sm-4 col-12">
           <q-card flat bordered class="feature-card">
             <q-card-section>
               <div class="text-h6 text-primary q-mb-sm">
@@ -38,7 +38,7 @@
             </q-card-section>
           </q-card>
         </div>
-        <div class="col-12 col-sm-4">
+        <div class="col-sm-4 col-12">
           <q-card flat bordered class="feature-card">
             <q-card-section>
               <div class="text-h6 text-primary q-mb-sm">
@@ -51,7 +51,7 @@
             </q-card-section>
           </q-card>
         </div>
-        <div class="col-12 col-sm-4">
+        <div class="col-sm-4 col-12">
           <q-card flat bordered class="feature-card">
             <q-card-section>
               <div class="text-h6 text-primary q-mb-sm">
@@ -70,8 +70,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import SearchInput from 'components/SearchInput.vue'
+import { ref } from 'vue'
 
 const seq = ref('')
 </script>
