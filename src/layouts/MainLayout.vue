@@ -1,7 +1,7 @@
 <template>
   <q-layout view="lHh Lpr fff">
-    <q-header class="transparent text-primary">
-      <q-toolbar class="header-toolbar">
+    <q-header :class="{ 'transparent text-primary': isIndexPage }">
+      <q-toolbar class="header-toolbar h-20">
         <q-btn
           v-if="!isIndexPage"
           flat
@@ -9,9 +9,9 @@
           round
           aria-label="Home"
           @click="$router.push('/')"
-          class="home-btn"
+          size="xl"
         >
-          <q-icon name="home" />
+          <q-avatar size="48px"><q-img src="/favicon-96x96.png" /></q-avatar>
         </q-btn>
         <q-toolbar-title class="title" v-if="!isIndexPage">
           <div class="brand-section">
@@ -21,6 +21,42 @@
             </q-item-label>
           </div>
         </q-toolbar-title>
+
+        <q-space />
+
+        <!-- Navigation links -->
+        <div class="gt-xs">
+          <q-btn flat label="About" to="/about" />
+          <q-btn flat label="Documentation" href="#" target="_blank" />
+          <q-btn flat label="Contact" href="#" target="_blank" />
+        </div>
+
+        <!-- Mobile menu -->
+        <q-btn flat dense round class="lt-sm" aria-label="Menu">
+          <q-icon name="menu" />
+          <q-menu>
+            <q-list style="min-width: 200px">
+              <q-item clickable to="/about">
+                <q-item-section avatar>
+                  <q-icon name="info" />
+                </q-item-section>
+                <q-item-section>About</q-item-section>
+              </q-item>
+              <q-item clickable href="#" target="_blank">
+                <q-item-section avatar>
+                  <q-icon name="description" />
+                </q-item-section>
+                <q-item-section>Documentation</q-item-section>
+              </q-item>
+              <q-item clickable href="#" target="_blank">
+                <q-item-section avatar>
+                  <q-icon name="mail" />
+                </q-item-section>
+                <q-item-section>Contact</q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
       </q-toolbar>
     </q-header>
 
@@ -53,12 +89,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { openURL } from 'quasar'
-import { useRoute } from 'vue-router'
-import { useSystemStore } from '../stores/systemStore'
-import { useLocalSettingsStore } from '../stores/localSettingsStore'
 import { storeToRefs } from 'pinia'
+import { openURL } from 'quasar'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { useLocalSettingsStore } from '../stores/localSettingsStore'
+import { useSystemStore } from '../stores/systemStore'
 
 // Router setup
 const route = useRoute()
