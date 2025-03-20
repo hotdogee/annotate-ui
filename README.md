@@ -1,72 +1,103 @@
-# ANNotate (annotate-ui)
+# ANNotate UI
 
 Protein Function Prediction using Recurrent Neural Networks
 
-## Install the dependencies
+## Overall Architecture
 
-```bash
-yarn
-# or
-npm install
-```
+The complete system consists of three main components:
 
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
+- **Frontend UI** (annotate-ui): A Single Page Application (SPA) built with Vue 3
+- **Backend API** (annotate-api): A Feathers.js NodeJS RESTful API service
+- **Deep Learning Model** (annotate-model): Tensorflow GPU-accelerated inference for protein function prediction models
 
-```bash
-quasar dev
-```
+## Frontend Architecture (annotate-ui)
 
-### Lint the files
+The frontend is built as a Single Page Application (SPA) using the Quasar Framework (Vue 3), focusing on performance and responsive design. The application is structured following Vue's component architecture with the following key elements:
 
-```bash
-yarn lint
-# or
-npm run lint
-```
+### Core Technologies
 
-### Format the files
+- **Framework**: Quasar Framework v2.18+ (Vue 3.5+)
+- **Language**: TypeScript for type safety and improved developer experience
+- **State Management**: Pinia v3.0+ for reactive state management
+- **Real-time Communication**: Socket.io client for WebSocket connections to the Feathers backend
+- **HTTP Requests**: Axios for REST API calls
+- **Data Visualization**: Apache ECharts for rendering protein data visualizations
+- **CSS Framework**: TailwindCSS v4.0+ for utility-first styling approach
+- **Form Validation**: Vuelidate for form input validation
 
-```bash
-yarn format
-# or
-npm run format
-```
+### Application Structure
 
-### Build the app for production
+- **/src/pages/**: Main application views including:
+  - `IndexPage.vue`: Landing page with search functionality
+  - `PfamDetail.vue`: Detailed protein family information with predictions
+  - `DocumentationPage.vue`: Application documentation
+  - `AboutPage.vue`: Information about the project
+  - `ContactPage.vue`: Contact information
+- **/src/components/**: Reusable UI components such as:
+  - `SearchInput.vue`: Complex protein search component
+  - `EssentialLink.vue`: Navigation link component
+- **/src/layouts/**: Page layout containers
+  - `MainLayout.vue`: Primary application layout with navigation and content areas
+- **/src/stores/**: Pinia state management stores
+  - `pfamStore.ts`: Store for protein family data
+  - `referencesStore.ts`: Store for scientific reference data
+  - `localSettingsStore.js`: User preferences and local settings
+  - `systemStore.js`: Application system state
+- **/src/router/**: Vue Router configuration
+  - `routes.ts`: Route definitions mapping URLs to page components
+  - `index.ts`: Router configuration and initialization
+- **/src/boot/**: Application initialization files
+  - `feathers.ts`: Feathers client setup for backend communication
+  - `i18n.ts`: Internationalization configuration
+  - `pinia-colada.ts`: Pinia caching integration
+  - `logger.js`: Application logging setup
 
-```bash
-quasar build
-```
+### Data Flow Architecture
 
-### Customize the configuration
+1. **User Interface Layer**: Vue components in pages/ and components/ directories
+2. **State Management Layer**: Pinia stores in stores/ directory
+3. **API Communication Layer**: Feathers client configured in boot/ directory
+4. **Service Layer**: pfam service and references service accessible through the Feathers client
 
-See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+### Caching Strategy
 
-# Implementation Notes
+- Local API response caching using browser's localStorage
+- Pinia-plugin-persistedstate for preserving state between sessions
+- @pinia/colada for optimized API request caching
 
-## 2025/3/7
+### Build & Development Tools
 
-- I decided not to use `feathers-pinia` because it still requires the old version of pinia (v2), and hasn't been updated in 10 months, seems abandoned.
+- Vite-based build system through Quasar CLI
+- TypeScript for static type checking
+- ESLint for code quality
+- Prettier for code formatting
+- PostCSS with Autoprefixer for CSS compatibility
 
-```bash
-npm install @feathersjs/socketio-client socket.io-client --save
-```
+This architecture provides a maintainable, scalable frontend that efficiently communicates with the backend services while providing a responsive and intuitive user interface for protein function prediction analysis.
 
-## 2025/3/8
+## Backend Architecture
 
-- v-charts hasn't been updated in 6 years, need to move to something modern
-- removed v-charts, and moved to @v-charts2/histogram
+The backend API is built with Feathers.js providing:
 
-```bash
-npm install @v-charts2/histogram
-```
+- RESTful API endpoints for data access
+- Real-time communication using Socket.io
+- Authentication and authorization services
+- Integration with the TensorFlow Serving API for model inference
 
-## 2025/3/9
+## Model Serving Architecture
 
-- Use pinia-colada to handle api caching
+The machine learning models are served using TensorFlow Serving:
 
-## 2025/3/10
+- Multiple GPU-accelerated model instances for high-throughput prediction
+- Model versioning and configuration management
+- RESTful API for model inference requests
+- Containerized using Docker for easy deployment and scaling
 
-- Use pinia-plugin-persistedstate to persist the query cache
-  - doesn't work
-- Use native localStorage api to cache api responses instead
+## Data Flow
+
+1. Client makes requests to the Quasar UI
+2. UI communicates with the Feathers API for data processing
+3. For predictions, Feathers API communicates with TensorFlow Serving
+4. Prediction results are returned to the UI for visualization and analysis
+
+This architecture provides scalability, performance, and maintainability for the protein function prediction system.
