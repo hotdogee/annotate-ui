@@ -7,6 +7,13 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: 'pfam/:id', name: 'pfam', component: () => import('pages/PfamDetail.vue') },
       { path: 'pfam', component: () => import('pages/IndexPage.vue') },
+      { path: 'about', name: 'about', component: () => import('pages/AboutPage.vue') },
+      {
+        path: 'how-it-works',
+        name: 'how-it-works',
+        component: () => import('pages/HowItWorksPage.vue'),
+      },
+      { path: 'contact', name: 'contact', component: () => import('pages/ContactPage.vue') },
       { path: '', component: () => import('pages/IndexPage.vue') },
     ],
   },
