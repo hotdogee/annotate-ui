@@ -162,3 +162,46 @@ p {
 .hide {
   display: none;
 }
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.4s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+@theme {
+  --slide-amount: 100%;
+}
+
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: all 0.4s linear;
+}
+.slide-right-enter-from {
+  transform: translateX(calc(var(--slide-amount) * -1));
+  opacity: 0;
+  position: absolute;
+}
+.slide-right-leave-to {
+  transform: translateX(var(--slide-amount));
+  opacity: 0;
+  position: absolute;
+}
+.slide-left-enter-active,
+.slide-left-leave-active {
+  transition: all 0.4s linear;
+}
+.slide-left-enter-from {
+  transform: translateX(var(--slide-amount));
+  opacity: 0;
+  position: absolute;
+}
+.slide-left-leave-to {
+  transform: translateX(calc(var(--slide-amount) * -1));
+  opacity: 0;
+  position: absolute;
+}

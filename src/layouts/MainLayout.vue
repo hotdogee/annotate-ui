@@ -1,14 +1,14 @@
 <template>
   <q-layout view="lHh Lpr fff">
-    <q-header :class="{ 'transparent text-primary': isIndexPage }">
-      <q-toolbar class="header-toolbar h-20">
+    <q-header :class="{ 'transparent text-gray-600': true, 'backdrop-blur-3xl': !isIndexPage }">
+      <q-toolbar class="header-toolbar h-16 text-gray-900">
         <q-btn
           v-if="!isIndexPage"
           flat
           dense
           round
           aria-label="Home"
-          @click="$router.push('/')"
+          :to="{ name: 'index' }"
           size="xl"
         >
           <q-avatar size="48px"><q-img src="/favicon-96x96.png" /></q-avatar>
@@ -26,9 +26,9 @@
 
         <!-- Navigation links -->
         <div class="gt-xs">
-          <q-btn flat label="About" to="/about" />
-          <q-btn flat label="Documentation" href="#" target="_blank" />
-          <q-btn flat label="Contact" href="#" target="_blank" />
+          <q-btn flat label="About" :to="{ name: 'about' }" />
+          <q-btn flat label="How It Works" :to="{ name: 'how-it-works' }" />
+          <q-btn flat label="Contact" :to="{ name: 'contact' }" />
         </div>
 
         <!-- Mobile menu -->
@@ -36,19 +36,19 @@
           <q-icon name="menu" />
           <q-menu>
             <q-list style="min-width: 200px">
-              <q-item clickable to="/about">
+              <q-item clickable :to="{ name: 'about' }">
                 <q-item-section avatar>
                   <q-icon name="info" />
                 </q-item-section>
                 <q-item-section>About</q-item-section>
               </q-item>
-              <q-item clickable href="#" target="_blank">
+              <q-item clickable :to="{ name: 'how-it-works' }">
                 <q-item-section avatar>
                   <q-icon name="description" />
                 </q-item-section>
-                <q-item-section>Documentation</q-item-section>
+                <q-item-section>How It Works</q-item-section>
               </q-item>
-              <q-item clickable href="#" target="_blank">
+              <q-item clickable :to="{ name: 'contact' }">
                 <q-item-section avatar>
                   <q-icon name="mail" />
                 </q-item-section>
@@ -83,7 +83,11 @@
     </q-footer>
 
     <q-page-container class="page-container" :style="pageContainerStyle">
-      <router-view />
+      <router-view v-slot="{ Component }">
+        <transition :name="route.meta.transition as string">
+          <component :is="Component" class="w-full" />
+        </transition>
+      </router-view>
     </q-page-container>
   </q-layout>
 </template>
@@ -132,7 +136,7 @@ const isIndexPage = computed(() => {
 
 // Apply padding-top: 0px style only for IndexPage
 const pageContainerStyle = computed(() => {
-  return isIndexPage.value ? { 'padding-top': '0px' } : {}
+  return isIndexPage.value ? { 'padding-top': '0px' } : { 'padding-top': '0px' }
 })
 
 // Lifecycle hooks
