@@ -217,3 +217,18 @@ npm install @v-charts2/histogram
 - Use pinia-plugin-persistedstate to persist the query cache
   - doesn't work
 - Use native localStorage api to cache api responses instead
+
+## 2025/3/23
+
+- I decided to implement the backend for the Contact form using Google App Script with Google Sheet as data storage and send email notifications
+  - It is free, has no monthly send limits, can send email, supports reCAPTCHA if we get too much spam
+  - Surveyed form services: Basin, Formspree, Formspark, EmailJS, Google App Script
+    - https://x.com/i/grok?conversation=1903594087619641466
+  - Surveyed mailing services: Mailgun, SendGrid, Mailjet
+    - https://x.com/i/grok?conversation=1903589185094926745
+  - Reference:
+    - https://blog.milanmaharjan.com.np/post/build-a-custom-contact-form-for-your-static-website/
+    - https://www.googleappsscript.org/recent-additions/recaptcha-with-google-apps-script
+    - https://developers.google.com/apps-script/guides/html
+  - Deployment
+    - https://script.google.com/macros/s/AKfycbzsTXBdoV3b5XggmNJZzF0hxzvMuS-mtHuRh50xvwNcPjs_fL4v1QPOMF9WRrR213_Xuw/exec
