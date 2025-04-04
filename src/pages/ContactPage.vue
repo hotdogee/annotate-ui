@@ -2,12 +2,12 @@
   <div class="min-h-screen bg-white dark:bg-gray-950">
     <!-- Hero Section -->
     <section
-      class="relative bg-gradient-to-b from-blue-50 to-background py-16 md:py-24 dark:from-blue-950 dark:to-background"
+      class="relative bg-gradient-to-b from-amber-50 to-background py-16 md:py-24 dark:from-amber-950 dark:to-background"
     >
       <div class="container mx-auto px-4 md:px-6">
         <div class="mx-auto max-w-3xl space-y-4 text-center">
           <div
-            class="inline-flex items-center rounded-lg bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+            class="inline-flex items-center rounded-lg bg-amber-100 px-3 py-1 text-sm font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-200"
           >
             Get in Touch
           </div>
@@ -28,7 +28,7 @@
           <div class="p-6 sm:p-8 md:p-10">
             <div class="flex flex-col items-center md:flex-row md:items-start">
               <div class="mb-6 flex-shrink-0 md:mr-8 md:mb-0">
-                <div class="h-32 w-32 overflow-hidden rounded-full bg-blue-100 dark:bg-blue-900">
+                <div class="h-32 w-32 overflow-hidden rounded-full bg-amber-100 dark:bg-amber-900">
                   <img
                     src="~assets/contact-profile.jpg"
                     alt="Han Lin"
@@ -45,7 +45,9 @@
             </div>
 
             <div class="mt-8">
-              <h3 class="mb-4 text-xl font-semibold text-blue-600 dark:text-blue-400">About Me</h3>
+              <h3 class="mb-4 text-xl font-semibold text-amber-600 dark:text-amber-400">
+                About Me
+              </h3>
               <!-- <QMarkdown :src="LinkedinSummary" /> -->
               <!-- prettier-ignore -->
               <QMarkdown class="space-y-4 text-base text-gray-600 dark:text-gray-300">
@@ -88,9 +90,9 @@ Let’s build something groundbreaking together! 🚀
               <div class="flex items-start">
                 <div class="flex-shrink-0">
                   <div
-                    class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900"
+                    class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900"
                   >
-                    <Mail class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <Mail class="h-5 w-5 text-amber-600 dark:text-amber-400" />
                   </div>
                 </div>
                 <div class="ml-4">
@@ -98,7 +100,7 @@ Let’s build something groundbreaking together! 🚀
                   <div class="mt-1 space-y-1 text-base">
                     <a
                       href="mailto:hanlin@ntu.edu.tw"
-                      class="text-blue-600 hover:underline dark:text-blue-400"
+                      class="text-amber-600 hover:underline dark:text-amber-400"
                     >
                       hanlin@ntu.edu.tw
                     </a>
@@ -109,9 +111,9 @@ Let’s build something groundbreaking together! 🚀
               <div class="flex items-start">
                 <div class="flex-shrink-0">
                   <div
-                    class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900"
+                    class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900"
                   >
-                    <LinkIcon class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <LinkIcon class="h-5 w-5 text-amber-600 dark:text-amber-400" />
                   </div>
                 </div>
                 <div class="ml-4">
@@ -122,7 +124,7 @@ Let’s build something groundbreaking together! 🚀
                         href="https://github.com/hotdogee/annotate-ui"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="inline-flex items-center justify-center rounded-full p-3 text-gray-500 transition-colors duration-200 hover:bg-blue-100 hover:text-blue-600 dark:bg-blue-900 dark:hover:bg-blue-950"
+                        class="inline-flex items-center justify-center rounded-full p-3 text-gray-500 transition-colors duration-200 hover:bg-amber-100 hover:text-amber-600 dark:bg-amber-900 dark:hover:bg-amber-950"
                         aria-label="GitHub"
                       >
                         <svg
@@ -144,7 +146,7 @@ Let’s build something groundbreaking together! 🚀
                         href="https://www.linkedin.com/in/hotdogee"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="inline-flex items-center justify-center rounded-full p-3 text-gray-500 transition-colors duration-200 hover:bg-blue-100 hover:text-blue-600 dark:bg-blue-900 dark:hover:bg-blue-950"
+                        class="inline-flex items-center justify-center rounded-full p-3 text-gray-500 transition-colors duration-200 hover:bg-amber-100 hover:text-amber-600 dark:bg-amber-900 dark:hover:bg-amber-950"
                         aria-label="LinkedIn"
                       >
                         <svg
@@ -192,9 +194,9 @@ Let’s build something groundbreaking together! 🚀
               <div class="flex items-start">
                 <div class="flex-shrink-0">
                   <div
-                    class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900"
+                    class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900"
                   >
-                    <School class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <School class="h-5 w-5 text-amber-600 dark:text-amber-400" />
                   </div>
                 </div>
                 <div class="ml-4">
@@ -246,9 +248,9 @@ Let’s build something groundbreaking together! 🚀
           >
             <div class="mb-4 flex items-center">
               <div
-                class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900"
+                class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900"
               >
-                <Brain class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <Brain class="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
               <h3 class="ml-3 text-lg font-medium text-gray-900 dark:text-white">
                 Artificial Intelligence
@@ -264,9 +266,9 @@ Let’s build something groundbreaking together! 🚀
           >
             <div class="mb-4 flex items-center">
               <div
-                class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900"
+                class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900"
               >
-                <Flask class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <Flask class="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
               <h3 class="ml-3 text-lg font-medium text-gray-900 dark:text-white">Bioinformatics</h3>
             </div>
@@ -280,9 +282,9 @@ Let’s build something groundbreaking together! 🚀
           >
             <div class="mb-4 flex items-center">
               <div
-                class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900"
+                class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900"
               >
-                <Cloud class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <Cloud class="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
               <h3 class="ml-3 text-lg font-medium text-gray-900 dark:text-white">
                 Cloud Technologies
