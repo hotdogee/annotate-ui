@@ -25,14 +25,17 @@ export default defineConfig((ctx) => {
       // 'eva-icons',
       // 'themify',
       // 'line-awesome',
-      // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
+      'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
 
-      'roboto-font', // optional, you are not bound to it
+      // 'roboto-font', // optional, you are not bound to it
       'material-icons', // optional, you are not bound to it
     ],
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
     build: {
+      // alias: {
+      //   'quasar/dist/quasar.sass': path.resolve(__dirname, './src/css/app.scss'),
+      // },
       target: {
         browser: ['es2022', 'firefox115', 'chrome115', 'safari14'],
         node: 'node20',
@@ -65,6 +68,14 @@ export default defineConfig((ctx) => {
 
       // extendViteConf (viteConf) {},
       // viteVuePluginOptions: {},
+      // viteVuePluginOptions: {
+      //   template: {
+      //     compilerOptions: {
+      //       isPreTag: (tag) => tag === 'pre' || tag === 'q-markdown' || tag === 'QMarkdown',
+      //       whitespace: 'preserve',
+      //     },
+      //   },
+      // },
 
       vitePlugins: [
         [
