@@ -69,7 +69,7 @@
         </q-item-section>
         <q-space />
         <div class="copyright">© {{ new Date().getFullYear() }}</div>
-        <q-select
+        <!-- <q-select
           v-model="selectedLocale"
           dark
           dense
@@ -78,7 +78,7 @@
           map-options
           :options="localeOptions"
           class="locale-select"
-        />
+        /> -->
       </q-toolbar>
     </q-footer>
 
@@ -95,9 +95,9 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { openURL } from 'quasar'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useLocalSettingsStore } from '../stores/localSettingsStore'
+// import { useLocalSettingsStore } from '../stores/localSettingsStore'
 import { useSystemStore } from '../stores/systemStore'
 
 // Router setup
@@ -105,29 +105,29 @@ const route = useRoute()
 
 // Store setup
 const systemStore = useSystemStore()
-const localSettingsStore = useLocalSettingsStore()
+// const localSettingsStore = useLocalSettingsStore()
 const { version } = storeToRefs(systemStore)
-const { locale, getLocale } = storeToRefs(localSettingsStore)
+// const { locale, getLocale } = storeToRefs(localSettingsStore)
 
 // Data properties
-const localeOptions = ref([
-  {
-    label: 'English',
-    value: 'en-us',
-  },
-  {
-    label: '繁中',
-    value: 'zh-hant',
-  },
-])
+// const localeOptions = ref([
+//   {
+//     label: 'English',
+//     value: 'en-us',
+//   },
+//   {
+//     label: '繁中',
+//     value: 'zh-hant',
+//   },
+// ])
 
 // Computed properties
-const selectedLocale = computed({
-  get: () => getLocale.value,
-  set: (newLocale) => {
-    locale.value = newLocale
-  },
-})
+// const selectedLocale = computed({
+//   get: () => getLocale.value,
+//   set: (newLocale) => {
+//     locale.value = newLocale
+//   },
+// })
 
 // Check if the current route is showing IndexPage
 const isIndexPage = computed(() => {
@@ -208,7 +208,7 @@ defineExpose({
   white-space: nowrap;
   overflow: hidden;
   opacity: 0.8;
-  margin: 0 1rem;
+  // margin: 0 1rem;
 }
 
 .locale-select {
