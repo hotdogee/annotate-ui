@@ -177,31 +177,83 @@ p {
   --slide-amount: 100%;
 }
 
-.slide-right-enter-active,
+/* .slide-right-enter-active,
 .slide-right-leave-active {
-  transition: all 0.4s linear;
+  transition: all 4s linear;
 }
 .slide-right-enter-from {
   transform: translateX(calc(var(--slide-amount) * -1));
-  opacity: 0;
   position: absolute;
 }
 .slide-right-leave-to {
   transform: translateX(var(--slide-amount));
-  opacity: 0;
   position: absolute;
 }
 .slide-left-enter-active,
 .slide-left-leave-active {
-  transition: all 0.4s linear;
+  transition: all 4s linear;
 }
 .slide-left-enter-from {
   transform: translateX(var(--slide-amount));
-  opacity: 0;
   position: absolute;
 }
 .slide-left-leave-to {
   transform: translateX(calc(var(--slide-amount) * -1));
-  opacity: 0;
   position: absolute;
+} */
+
+.slide-left-enter-active {
+  animation: shrink-and-slide-right 0.4s reverse;
+  position: absolute;
+  transform-origin: top center;
+}
+.slide-left-leave-active {
+  animation: shrink-and-slide-left 0.4s;
+  position: absolute;
+  transform-origin: top center;
+}
+
+.slide-right-enter-active {
+  animation: shrink-and-slide-left 0.4s reverse;
+  position: absolute;
+  transform-origin: top center;
+}
+.slide-right-leave-active {
+  animation: shrink-and-slide-right 0.4s;
+  position: absolute;
+  transform-origin: top center;
+}
+
+@keyframes shrink-and-slide-left {
+  0% {
+    transform: scale(1) translateY(0vh);
+    opacity: 1;
+  }
+  15% {
+    transform: scale(0.8) translateY(10vh);
+  }
+  85% {
+    transform: scale(0.8) translateY(10vh) translateX(-100vw);
+  }
+  100% {
+    transform: scale(1) translateY(0vh) translateX(-100vw);
+    opacity: 0;
+  }
+}
+
+@keyframes shrink-and-slide-right {
+  0% {
+    transform: scale(1) translateY(0vh);
+    opacity: 1;
+  }
+  15% {
+    transform: scale(0.8) translateY(10vh);
+  }
+  85% {
+    transform: scale(0.8) translateY(10vh) translateX(100vw);
+  }
+  100% {
+    transform: scale(1) translateY(0vh) translateX(100vw);
+    opacity: 0;
+  }
 }
