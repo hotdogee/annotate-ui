@@ -28,12 +28,12 @@
         <div class="col-sm-4 col-12">
           <q-card flat bordered class="feature-card">
             <q-card-section>
-              <div class="text-h6 text-primary q-mb-sm">
+              <div class="text-h6 q-mb-sm text-primary">
                 <q-icon name="bolt" size="sm" class="q-mr-sm" />
                 Fast Results
               </div>
               <p class="text-body2 text-grey-8">
-                Get domain predictions in seconds using our optimized neural network model.
+                Get domain predictions under 1 second using our optimized deep learning model.
               </p>
             </q-card-section>
           </q-card>
@@ -41,12 +41,12 @@
         <div class="col-sm-4 col-12">
           <q-card flat bordered class="feature-card">
             <q-card-section>
-              <div class="text-h6 text-primary q-mb-sm">
+              <div class="text-h6 q-mb-sm text-primary">
                 <q-icon name="precision_manufacturing" size="sm" class="q-mr-sm" />
                 High Accuracy
               </div>
               <p class="text-body2 text-grey-8">
-                Advanced deep learning architecture trained on extensive protein databases.
+                Advanced recurrent architecture trained on extensive protein databases.
               </p>
             </q-card-section>
           </q-card>
@@ -54,9 +54,9 @@
         <div class="col-sm-4 col-12">
           <q-card flat bordered class="feature-card">
             <q-card-section>
-              <div class="text-h6 text-primary q-mb-sm">
+              <div class="text-h6 q-mb-sm text-primary">
                 <q-icon name="insights" size="sm" class="q-mr-sm" />
-                Visual Results
+                Visualize Results
               </div>
               <p class="text-body2 text-grey-8">
                 Interactive visualization of predicted domains and their confidence scores.
