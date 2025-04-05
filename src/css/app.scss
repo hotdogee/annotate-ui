@@ -174,52 +174,28 @@ p {
 }
 
 @theme {
-  --slide-amount: 100%;
+  --slide-time: 0.4s;
+  --scale-amount: 0.8;
 }
-
-/* .slide-right-enter-active,
-.slide-right-leave-active {
-  transition: all 4s linear;
-}
-.slide-right-enter-from {
-  transform: translateX(calc(var(--slide-amount) * -1));
-  position: absolute;
-}
-.slide-right-leave-to {
-  transform: translateX(var(--slide-amount));
-  position: absolute;
-}
-.slide-left-enter-active,
-.slide-left-leave-active {
-  transition: all 4s linear;
-}
-.slide-left-enter-from {
-  transform: translateX(var(--slide-amount));
-  position: absolute;
-}
-.slide-left-leave-to {
-  transform: translateX(calc(var(--slide-amount) * -1));
-  position: absolute;
-} */
 
 .slide-left-enter-active {
-  animation: shrink-and-slide-right 0.4s reverse;
+  animation: shrink-and-slide-right var(--slide-time) reverse;
   position: absolute;
   transform-origin: top center;
 }
 .slide-left-leave-active {
-  animation: shrink-and-slide-left 0.4s;
+  animation: shrink-and-slide-left var(--slide-time);
   position: absolute;
   transform-origin: top center;
 }
 
 .slide-right-enter-active {
-  animation: shrink-and-slide-left 0.4s reverse;
+  animation: shrink-and-slide-left var(--slide-time) reverse;
   position: absolute;
   transform-origin: top center;
 }
 .slide-right-leave-active {
-  animation: shrink-and-slide-right 0.4s;
+  animation: shrink-and-slide-right var(--slide-time);
   position: absolute;
   transform-origin: top center;
 }
@@ -230,10 +206,10 @@ p {
     opacity: 1;
   }
   15% {
-    transform: scale(0.8) translateY(10vh);
+    transform: scale(var(--scale-amount)) translateY(10vh);
   }
   85% {
-    transform: scale(0.8) translateY(10vh) translateX(-100vw);
+    transform: scale(var(--scale-amount)) translateY(10vh) translateX(-100vw);
   }
   100% {
     transform: scale(1) translateY(0vh) translateX(-100vw);
@@ -247,10 +223,10 @@ p {
     opacity: 1;
   }
   15% {
-    transform: scale(0.8) translateY(10vh);
+    transform: scale(var(--scale-amount)) translateY(10vh);
   }
   85% {
-    transform: scale(0.8) translateY(10vh) translateX(100vw);
+    transform: scale(var(--scale-amount)) translateY(10vh) translateX(100vw);
   }
   100% {
     transform: scale(1) translateY(0vh) translateX(100vw);
