@@ -5,16 +5,28 @@
       class="relative bg-gradient-to-b from-amber-50 to-background py-16 md:py-24 dark:from-amber-950 dark:to-background"
     >
       <div class="container mx-auto px-4 md:px-6">
-        <div class="mx-auto max-w-3xl space-y-4 text-center">
-          <div
-            class="inline-flex items-center rounded-lg bg-amber-100 px-3 py-1 text-sm font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-200"
-          >
-            Get in Touch
+        <div class="grid items-center gap-6 max-lg:text-center lg:grid-cols-2 xl:px-24">
+          <div class="space-y-4">
+            <div
+              class="inline-flex items-center rounded-lg bg-amber-100 px-3 py-1 text-sm font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-200"
+            >
+              Get in Touch
+            </div>
+            <h1 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Contact Us</h1>
+            <p class="text-muted-foreground md:text-xl/relaxed lg:max-w-[600px]">
+              Get in touch with the ANNotate team for support, collaboration, or inquiries
+            </p>
           </div>
-          <h1 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Contact Us</h1>
-          <p class="text-muted-foreground md:text-xl/relaxed">
-            Get in touch with the ANNotate team for support, collaboration, or inquiries
-          </p>
+          <div class="flex justify-center lg:justify-end">
+            <div
+              class="relative flex h-[300px] w-[300px] items-center justify-center overflow-hidden rounded-lg bg-amber-100 md:h-[400px] md:w-[400px] dark:bg-amber-900"
+            >
+              <img src="~assets/contact-illustration-1.jpg" alt="About Page Illustration" />
+              <div
+                class="absolute inset-0 bg-gradient-to-tr from-amber-500/20 to-transparent dark:from-amber-400/20"
+              ></div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -393,8 +405,8 @@ Let’s build something groundbreaking together! 🚀
               </q-input>
               <q-btn
                 type="submit"
-                color="primary"
                 class="full-width"
+                color="amber-8"
                 size="lg"
                 :loading="isLoading"
                 aria-label="Send message"

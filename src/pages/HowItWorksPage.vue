@@ -5,28 +5,43 @@
       class="relative bg-gradient-to-b from-blue-50 to-background py-16 md:py-24 dark:from-blue-950 dark:to-background"
     >
       <div class="container mx-auto px-4 md:px-6">
-        <div class="mx-auto max-w-3xl space-y-4 text-center">
-          <div
-            class="inline-flex items-center rounded-lg bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-          >
-            Protein Annotation Process
+        <div class="grid items-center gap-6 max-lg:text-center lg:grid-cols-2 xl:px-24">
+          <div class="space-y-4">
+            <div
+              class="inline-flex items-center rounded-lg bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+            >
+              Protein Annotation Process
+            </div>
+            <h1 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+              How ANNotate Works
+            </h1>
+            <p class="text-muted-foreground md:text-xl/relaxed lg:max-w-[600px]">
+              Understanding the complete workflow from protein sequence input to functional
+              annotation output
+            </p>
           </div>
-          <h1 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-            How ANNotate Works
-          </h1>
-          <p class="text-muted-foreground md:text-xl/relaxed">
-            Understanding the complete workflow from protein sequence input to functional annotation
-            output
-          </p>
+          <div class="flex justify-center lg:justify-end">
+            <div
+              class="relative flex h-[300px] w-[300px] items-center justify-center overflow-hidden rounded-lg bg-blue-100 md:h-[400px] md:w-[400px] dark:bg-blue-900"
+            >
+              <img
+                src="~assets/how-it-works-illustration-1.jpg"
+                alt="How It Works Page Illustration"
+              />
+              <div
+                class="absolute inset-0 bg-gradient-to-tr from-blue-500/20 to-transparent dark:from-blue-400/20"
+              ></div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Overview -->
-    <section class="py-12 md:py-16">
+    <section class="pb-12">
       <div class="container mx-auto px-4 md:px-6">
         <div class="mx-auto max-w-3xl space-y-4 text-center">
-          <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl">Process Overview</h2>
+          <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl">Detailed Instructions</h2>
           <p class="text-muted-foreground md:text-xl/relaxed">
             ANNotate uses deep learning to predict protein function from amino acid sequences. The
             system identifies Pfam domains—conserved regions of proteins that often correspond to
