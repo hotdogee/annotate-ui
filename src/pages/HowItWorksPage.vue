@@ -553,6 +553,74 @@ MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAEDLQGSLQPLALEGSLQKRGIV
       </div>
     </section>
 
+    <!-- Use Cases -->
+    <section class="py-12 md:py-16">
+      <div class="container mx-auto px-4 md:px-6">
+        <div class="mx-auto max-w-3xl space-y-4 text-center">
+          <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl">Common Use Cases</h2>
+          <p class="text-muted-foreground md:text-xl/relaxed">
+            How researchers are using ANNotate in their work
+          </p>
+        </div>
+
+        <div class="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div class="overflow-hidden rounded-lg bg-blue-50 shadow-md dark:bg-blue-900/20">
+            <div class="p-6">
+              <div
+                class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-blue-500 text-white dark:bg-blue-600"
+              >
+                <Search class="h-6 w-6" />
+              </div>
+              <h3 class="mb-3 text-center text-xl font-semibold text-gray-900 dark:text-white">
+                Functional Annotation
+              </h3>
+              <p class="text-gray-600 dark:text-gray-300">
+                Researchers use ANNotate to quickly identify functional domains in newly sequenced
+                proteins, helping to understand their biological roles without time-consuming
+                laboratory experiments.
+              </p>
+            </div>
+          </div>
+
+          <div class="overflow-hidden rounded-lg bg-blue-50 shadow-md dark:bg-blue-900/20">
+            <div class="p-6">
+              <div
+                class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-blue-500 text-white dark:bg-blue-600"
+              >
+                <BarChart3 class="h-6 w-6" />
+              </div>
+              <h3 class="mb-3 text-center text-xl font-semibold text-gray-900 dark:text-white">
+                Comparative Genomics
+              </h3>
+              <p class="text-gray-600 dark:text-gray-300">
+                By analyzing domain architectures across multiple species, scientists can trace
+                evolutionary relationships and identify conserved functional elements in protein
+                families.
+              </p>
+            </div>
+          </div>
+
+          <div class="overflow-hidden rounded-lg bg-blue-50 shadow-md dark:bg-blue-900/20">
+            <div class="p-6">
+              <div
+                class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-blue-500 text-white dark:bg-blue-600"
+              >
+                <Code class="h-6 w-6" />
+              </div>
+              <h3 class="mb-3 text-center text-xl font-semibold text-gray-900 dark:text-white">
+                High-Throughput Sequencing
+              </h3>
+              <p class="text-gray-600 dark:text-gray-300">
+                Bioinformaticians integrate ANNotate into their pipelines to process thousands of
+                sequences from genome sequencing projects, providing rapid functional insights at
+                scale.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Advantages -->
     <section class="py-12 md:py-16">
       <div class="container mx-auto px-4 md:px-6">
@@ -1011,6 +1079,7 @@ import {
   Brain,
   ChevronDown,
   ChevronRight,
+  Code,
   Cpu,
   Database,
   FileText,
@@ -1020,6 +1089,7 @@ import {
   Network,
   Route,
   Scan,
+  Search,
   TableProperties,
   Tag,
   Zap,
