@@ -130,7 +130,8 @@
         </div>
         <div class="ml-3">
           <p class="text-sm text-amber-800 dark:text-amber-300">
-            Prediction service cold start can take up to 30 seconds.
+            Loading prediction model... a cold start can take up to 60 seconds. The service is
+            shutdown when there is no traffic to save costs.
           </p>
         </div>
       </div>
