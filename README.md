@@ -2,6 +2,12 @@
 
 Protein Function Prediction using Recurrent Neural Networks
 
+# Live
+
+- Frontend deployed on GitHub Pages: https://ann.hanl.in/
+- Backend deployed on Google Compute Engine.
+- Deep Learning Model deployed on Google Cloud Run.
+
 ![ANNotate UI](https://github.com/user-attachments/assets/81dc7266-e6b7-47d9-b1e9-97a8cb1f7144)
 
 ## Prediction Results
