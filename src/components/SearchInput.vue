@@ -175,7 +175,7 @@ const router = useRouter()
 const $q = useQuasar()
 
 const model = ref('pfam')
-const version = ref('1568346315')
+const version = ref('1742184680')
 
 // Example sequences
 const examples = ref([
