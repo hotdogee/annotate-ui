@@ -64,7 +64,7 @@
             <h3 class="text-xl font-bold">High Performance</h3>
             <p class="text-center text-sm text-muted-foreground">
               Processes protein sequences 100 times faster than traditional HMMER-based tools like
-              PfamScan, enabling rapid analysis of large-scale proteinomic data.
+              PfamScan, enabling rapid analysis of large-scale proteomic data.
             </p>
           </div>
           <div class="flex flex-col items-center space-y-2 rounded-lg border bg-card p-6 shadow-sm">
