@@ -1,7 +1,7 @@
 <template>
   <q-layout view="lHh Lpr fff">
     <q-header :class="{ 'transparent text-gray-600': true, 'backdrop-blur-3xl': !isIndexPage }">
-      <q-toolbar class="header-toolbar h-16 text-gray-900">
+      <q-toolbar class="header-toolbar flex h-16 text-gray-900">
         <Transition name="fade">
           <div v-if="!isIndexPage" class="flex items-center">
             <q-btn flat dense round aria-label="Home" :to="{ name: 'index' }" size="xl">
@@ -11,7 +11,7 @@
               <div class="brand-section">
                 <q-item-label class="text-h5 brand-name">ANNotate</q-item-label>
                 <q-item-label class="text-subtitle2 brand-subtitle" lines="1">
-                  Protein Annotation using Neural Networks
+                  Protein Annotation using Deep Learning
                 </q-item-label>
               </div>
             </q-toolbar-title>
@@ -21,38 +21,40 @@
         <q-space />
 
         <!-- Navigation links -->
-        <div class="gt-xs">
+        <div class="min-w-90 items-center max-[700px]:hidden">
           <q-btn flat label="About" :to="{ name: 'about' }" />
           <q-btn flat label="How It Works" :to="{ name: 'how-it-works' }" />
           <q-btn flat label="Contact" :to="{ name: 'contact' }" />
         </div>
 
         <!-- Mobile menu -->
-        <q-btn flat dense round class="lt-sm" aria-label="Menu">
-          <q-icon name="menu" />
-          <q-menu>
-            <q-list style="min-width: 200px">
-              <q-item clickable :to="{ name: 'about' }">
-                <q-item-section avatar>
-                  <q-icon name="info" />
-                </q-item-section>
-                <q-item-section>About</q-item-section>
-              </q-item>
-              <q-item clickable :to="{ name: 'how-it-works' }">
-                <q-item-section avatar>
-                  <q-icon name="description" />
-                </q-item-section>
-                <q-item-section>How It Works</q-item-section>
-              </q-item>
-              <q-item clickable :to="{ name: 'contact' }">
-                <q-item-section avatar>
-                  <q-icon name="mail" />
-                </q-item-section>
-                <q-item-section>Contact</q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-btn>
+        <div class="min-[700px]:hidden">
+          <q-btn flat dense round aria-label="Menu">
+            <q-icon name="menu" />
+            <q-menu>
+              <q-list style="min-width: 200px">
+                <q-item clickable :to="{ name: 'about' }">
+                  <q-item-section avatar>
+                    <q-icon name="info" />
+                  </q-item-section>
+                  <q-item-section>About</q-item-section>
+                </q-item>
+                <q-item clickable :to="{ name: 'how-it-works' }">
+                  <q-item-section avatar>
+                    <q-icon name="description" />
+                  </q-item-section>
+                  <q-item-section>How It Works</q-item-section>
+                </q-item>
+                <q-item clickable :to="{ name: 'contact' }">
+                  <q-item-section avatar>
+                    <q-icon name="mail" />
+                  </q-item-section>
+                  <q-item-section>Contact</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
+        </div>
       </q-toolbar>
     </q-header>
 

@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-background">
     <!-- Hero Section -->
     <section
-      class="relative bg-gradient-to-b from-blue-50 to-background py-16 md:py-24 dark:from-blue-950 dark:to-background"
+      class="relative bg-gradient-to-b from-blue-50 to-background py-16 pt-20 md:py-24 dark:from-blue-950 dark:to-background"
     >
       <div class="container mx-auto px-4 md:px-6">
         <div class="grid items-center gap-6 max-lg:text-center lg:grid-cols-2 xl:px-24">
