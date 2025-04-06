@@ -27,7 +27,7 @@ Protein Function Prediction using Deep Learning
 The complete system consists of three main components:
 
 - **Frontend UI** (annotate-ui): A Single Page Application (SPA) built with Vue 3
-- **Backend API** (annotate-api): A Feathers.js NodeJS RESTful API service
+- **Backend API** ([annotate-api](https://github.com/hotdogee/annotate-api)): A Feathers.js NodeJS RESTful API service
 - **Deep Learning Model** (annotate-model): Tensorflow GPU-accelerated inference for protein function prediction models
 
 ## Frontend Architecture (annotate-ui)
