@@ -112,9 +112,28 @@
         id="predict"
         :label="predictLabel"
         color="primary"
+        class="full-width"
+        aria-label="Submit sequence"
         @click="predict"
         :loading="isLoading"
       />
+    </div>
+
+    <div
+      v-if="isColdStart"
+      class="mt-6 rounded-md border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20"
+      role="alert"
+    >
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <Info class="h-5 w-5 text-amber-500 dark:text-amber-400" />
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-amber-800 dark:text-amber-300">
+            Prediction service cold start can take up to 30 seconds.
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -126,6 +145,7 @@ import { maxLength } from '@vuelidate/validators'
 import { useStorage } from '@vueuse/core'
 import { isProtein } from 'assets/validators'
 import { md5 } from 'js-md5'
+import { Info } from 'lucide-vue-next'
 import { useQuasar } from 'quasar'
 import { pfam } from 'src/boot/feathers'
 import { computed, onMounted, ref, type Ref } from 'vue'
@@ -317,6 +337,9 @@ onMounted(() => {
   }, 1000)
 })
 
+const isColdStart = ref(false)
+let coldStartTimeout: ReturnType<typeof setTimeout>
+const coldStartDelay = 5000 // 30 seconds
 const queryCache = useQueryCache()
 
 const {
@@ -337,6 +360,9 @@ const {
   },
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onSuccess: async (result, data, context) => {
+    if (coldStartTimeout) {
+      clearTimeout(coldStartTimeout)
+    }
     // console.log('data', data)
     console.log('result', result)
     // // {}
@@ -349,6 +375,9 @@ const {
   },
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onError: (error, data, context) => {
+    if (coldStartTimeout) {
+      clearTimeout(coldStartTimeout)
+    }
     // error = {
     // "name": "BadRequest",
     // "message": "Error resolving data",
@@ -397,6 +426,9 @@ const predict = async () => {
 
   addToRecents(`${data.header}\n${data.sequence}`)
   createPfam(data)
+  coldStartTimeout = setTimeout(() => {
+    isColdStart.value = true
+  }, coldStartDelay)
 }
 
 const recents = useStorage<string[]>('protein-input:recents', [])
