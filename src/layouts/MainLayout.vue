@@ -2,25 +2,21 @@
   <q-layout view="lHh Lpr fff">
     <q-header :class="{ 'transparent text-gray-600': true, 'backdrop-blur-3xl': !isIndexPage }">
       <q-toolbar class="header-toolbar h-16 text-gray-900">
-        <q-btn
-          v-if="!isIndexPage"
-          flat
-          dense
-          round
-          aria-label="Home"
-          :to="{ name: 'index' }"
-          size="xl"
-        >
-          <q-avatar size="48px"><q-img src="/favicon-96x96.png" /></q-avatar>
-        </q-btn>
-        <q-toolbar-title class="title" v-if="!isIndexPage">
-          <div class="brand-section">
-            <q-item-label class="text-h5 brand-name">ANNotate</q-item-label>
-            <q-item-label class="text-subtitle2 brand-subtitle" lines="1">
-              Protein Annotation using Neural Networks
-            </q-item-label>
+        <Transition name="fade">
+          <div v-if="!isIndexPage" class="flex items-center">
+            <q-btn flat dense round aria-label="Home" :to="{ name: 'index' }" size="xl">
+              <q-avatar size="48px"><img src="/favicon-96x96.png" /></q-avatar>
+            </q-btn>
+            <q-toolbar-title class="title">
+              <div class="brand-section">
+                <q-item-label class="text-h5 brand-name">ANNotate</q-item-label>
+                <q-item-label class="text-subtitle2 brand-subtitle" lines="1">
+                  Protein Annotation using Neural Networks
+                </q-item-label>
+              </div>
+            </q-toolbar-title>
           </div>
-        </q-toolbar-title>
+        </Transition>
 
         <q-space />
 

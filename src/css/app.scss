@@ -166,6 +166,7 @@ p {
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.4s;
+  position: absolute;
 }
 
 .fade-enter-from,
