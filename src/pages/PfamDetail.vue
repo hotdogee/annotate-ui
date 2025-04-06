@@ -1,13 +1,13 @@
 <template>
   <q-page padding>
     <!-- Header section -->
-    <div class="header-section q-pb-sm">
-      <div class="text-h4 text-primary">Pfam Domain Prediction Results</div>
+    <div class="header-section q-pb-sm pt-16">
+      <div class="text-3xl text-primary">Pfam Domain Prediction Results</div>
       <q-separator class="q-mb-md" />
       <q-card flat bordered class="bg-grey-1">
         <q-card-section>
-          <div class="text-h6 text-weight-medium">{{ seqHeader }}</div>
-          <div class="text-subtitle1 q-mt-sm">
+          <div class="text-weight-medium text-xl">{{ seqHeader }}</div>
+          <div class="q-mt-sm text-lg">
             Sequence Length: <span class="text-weight-medium">{{ seqLength }}</span> amino acids
           </div>
         </q-card-section>
@@ -18,7 +18,7 @@
     <div class="chart-section q-pb-sm">
       <q-card flat bordered>
         <q-card-section>
-          <div class="text-h6 text-primary q-mb-md">Domain Distribution Visualization</div>
+          <div class="q-mb-md text-xl text-primary">Domain Distribution Visualization</div>
           <div class="chart-container">
             <div
               v-if="isChartDataValid"
@@ -31,7 +31,7 @@
                 <template v-slot:avatar>
                   <q-icon name="error" color="warning" size="md" />
                 </template>
-                <div class="text-subtitle1">Unable to display domain visualization chart</div>
+                <div class="text-xl">Unable to display domain visualization chart</div>
                 <div class="q-mt-sm" v-if="chartError">
                   <span class="text-caption">Error details: {{ chartError }}</span>
                 </div>
@@ -51,7 +51,7 @@
     <div class="tables-section">
       <q-card flat bordered class="q-mb-lg">
         <q-card-section>
-          <div class="text-h6 text-primary q-pb-md">
+          <div class="q-pb-md text-xl text-primary">
             {{ pfamTableTitle || 'Predicted Domains' }}
           </div>
           <q-table
@@ -95,11 +95,11 @@
 
       <!-- Reference Data Tables -->
       <template v-if="pfam32ReferenceData.length > 0 || pfam31ReferenceData.length > 0">
-        <div class="text-h6 text-primary q-pb-md">Reference Data</div>
+        <div class="q-pb-md text-xl text-primary">Reference Data</div>
 
         <q-card v-if="pfam32ReferenceData.length > 0" flat bordered class="q-mb-md">
           <q-card-section>
-            <div class="text-subtitle1 text-weight-medium q-pb-md">Pfam32 Reference Data</div>
+            <div class="text-weight-medium q-pb-md text-lg">Pfam32 Reference Data</div>
             <q-table
               :rows="pfam32ReferenceData"
               :columns="pfamReferenceColumns"
@@ -142,7 +142,7 @@
 
         <q-card v-if="pfam31ReferenceData.length > 0" flat bordered>
           <q-card-section>
-            <div class="text-subtitle1 text-weight-medium q-pb-md">Pfam31 Reference Data</div>
+            <div class="text-weight-medium q-pb-md text-lg">Pfam31 Reference Data</div>
             <q-table
               :rows="pfam31ReferenceData"
               :columns="pfamReferenceColumns"
@@ -258,12 +258,12 @@
 </style>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { openURL } from 'quasar'
-import { pfam, references } from 'src/boot/feathers'
 import { defineQuery, useQuery } from '@pinia/colada'
 import * as echarts from 'echarts'
+import { openURL } from 'quasar'
+import { pfam, references } from 'src/boot/feathers'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 // Types
 
 interface TableRow {

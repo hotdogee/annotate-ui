@@ -30,3 +30,5 @@ Error: Error message: Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable
     at new Promise (<anonymous>)
 Error: Ensure GITHUB_TOKEN has permission "id-token: write".
 ```
+
+## GitHub Pages does not support Vue Router history mode, have to use Vercel if we want to use history mode.
