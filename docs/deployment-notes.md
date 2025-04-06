@@ -11,6 +11,7 @@
     - Enforce HTTPS (wait 1 min and refresh page)
 - Setup GitHub Actions
   - .github/workflows/quasar-gh-pages.yml
+  - Total Duration: 58s
 
 ## id-token: write is Required for actions/deploy-pages@v4
 

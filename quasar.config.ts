@@ -57,7 +57,7 @@ export default defineConfig((ctx) => {
       // publicPath: '/',
       // analyze: true,
       env: {
-        API_URL: ctx.dev ? 'http://localhost:3030' : 'http://localhost:8581',
+        API_URL: ctx.dev ? 'http://localhost:3030' : 'http://api-ann.hanl.in:8581',
         API_PATH: ctx.dev ? '' : '',
       },
       // rawDefine: {}
