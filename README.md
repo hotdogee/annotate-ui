@@ -1,6 +1,6 @@
 # ANNotate UI
 
-Protein Function Prediction using Recurrent Neural Networks
+Protein Function Prediction using Deep Learning
 
 # Live
 
