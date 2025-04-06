@@ -18,6 +18,10 @@ Protein Function Prediction using Deep Learning
 
 ![About Page](https://github.com/user-attachments/assets/793a6209-0251-421e-854d-e8d8d65c708e)
 
+## Model Architecture
+
+![Model Architecture](https://github.com/user-attachments/assets/373f7c67-2bb5-4c8f-833b-64aa67a53221)
+
 ## Overall Architecture
 
 The complete system consists of three main components:
