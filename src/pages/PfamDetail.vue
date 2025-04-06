@@ -1,683 +1,1104 @@
 <template>
   <q-page padding>
-    <div class="row">
-      <div class="text-h5">
-        Pfam Domain Prediction Results
-      </div>
+    <!-- Header section -->
+    <div class="header-section q-pb-sm">
+      <div class="text-h4 text-primary">Pfam Domain Prediction Results</div>
+      <q-separator class="q-mb-md" />
+      <q-card flat bordered class="bg-grey-1">
+        <q-card-section>
+          <div class="text-h6 text-weight-medium">{{ seqHeader }}</div>
+          <div class="text-subtitle1 q-mt-sm">
+            Sequence Length: <span class="text-weight-medium">{{ seqLength }}</span> amino acids
+          </div>
+        </q-card-section>
+      </q-card>
     </div>
-    <div class="row">
-      <div class="q-my-sm text-h6">
-        {{ seqHeader }}
-      </div>
+
+    <!-- Chart section -->
+    <div class="chart-section q-pb-sm">
+      <q-card flat bordered>
+        <q-card-section>
+          <div class="text-h6 text-primary q-mb-md">Domain Distribution Visualization</div>
+          <div class="chart-container">
+            <div
+              v-if="isChartDataValid"
+              ref="echartsContainer"
+              :key="forceRender"
+              class="chart-area"
+            ></div>
+            <div v-else class="error-container">
+              <q-banner rounded class="bg-grey-2">
+                <template v-slot:avatar>
+                  <q-icon name="error" color="warning" size="md" />
+                </template>
+                <div class="text-subtitle1">Unable to display domain visualization chart</div>
+                <div class="q-mt-sm" v-if="chartError">
+                  <span class="text-caption">Error details: {{ chartError }}</span>
+                </div>
+                <div class="q-mt-sm">
+                  <span class="text-caption"
+                    >You can still view the domain data in the tables below.</span
+                  >
+                </div>
+              </q-banner>
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
     </div>
-    <div class="row">
-      <div class="q-my-sm text-subtitle1">
-        Sequence Length: {{ seqLength }} aa
-      </div>
+
+    <!-- Prediction Results Table -->
+    <div class="tables-section">
+      <q-card flat bordered class="q-mb-lg">
+        <q-card-section>
+          <div class="text-h6 text-primary q-pb-md">
+            {{ pfamTableTitle || 'Predicted Domains' }}
+          </div>
+          <q-table
+            :rows="pfamTableData"
+            :columns="pfamTableColumns"
+            v-model:pagination="pagination"
+            row-key="start"
+            flat
+            bordered
+            class="rounded-borders"
+          >
+            <template #body-cell-pfamAcc="props">
+              <q-td :props="props">
+                <q-btn
+                  icon-right="open_in_new"
+                  :label="props.value"
+                  color="secondary"
+                  flat
+                  dense
+                  class="text-weight-medium"
+                  @click="familyLink(props.value)"
+                ></q-btn>
+              </q-td>
+            </template>
+            <template #body-cell-clanAcc="props">
+              <q-td :props="props">
+                <q-btn
+                  icon-right="open_in_new"
+                  :label="props.value"
+                  color="secondary"
+                  flat
+                  dense
+                  class="text-weight-medium"
+                  @click="clanLink(props.value)"
+                ></q-btn>
+              </q-td>
+            </template>
+          </q-table>
+        </q-card-section>
+      </q-card>
+
+      <!-- Reference Data Tables -->
+      <template v-if="pfam32ReferenceData.length > 0 || pfam31ReferenceData.length > 0">
+        <div class="text-h6 text-primary q-pb-md">Reference Data</div>
+
+        <q-card v-if="pfam32ReferenceData.length > 0" flat bordered class="q-mb-md">
+          <q-card-section>
+            <div class="text-subtitle1 text-weight-medium q-pb-md">Pfam32 Reference Data</div>
+            <q-table
+              :rows="pfam32ReferenceData"
+              :columns="pfamReferenceColumns"
+              v-model:pagination="pagination"
+              row-key="start"
+              flat
+              bordered
+              class="rounded-borders"
+            >
+              <!-- Reuse the same templates as above -->
+              <template #body-cell-pfamAcc="props">
+                <q-td :props="props">
+                  <q-btn
+                    icon-right="open_in_new"
+                    :label="props.value"
+                    color="secondary"
+                    flat
+                    dense
+                    class="text-weight-medium"
+                    @click="familyLink(props.value)"
+                  ></q-btn>
+                </q-td>
+              </template>
+              <template #body-cell-clanAcc="props">
+                <q-td :props="props">
+                  <q-btn
+                    icon-right="open_in_new"
+                    :label="props.value"
+                    color="secondary"
+                    flat
+                    dense
+                    class="text-weight-medium"
+                    @click="clanLink(props.value)"
+                  ></q-btn>
+                </q-td>
+              </template>
+            </q-table>
+          </q-card-section>
+        </q-card>
+
+        <q-card v-if="pfam31ReferenceData.length > 0" flat bordered>
+          <q-card-section>
+            <div class="text-subtitle1 text-weight-medium q-pb-md">Pfam31 Reference Data</div>
+            <q-table
+              :rows="pfam31ReferenceData"
+              :columns="pfamReferenceColumns"
+              v-model:pagination="pagination"
+              row-key="start"
+              flat
+              bordered
+              class="rounded-borders"
+            >
+              <!-- Reuse the same templates as above -->
+              <template #body-cell-pfamAcc="props">
+                <q-td :props="props">
+                  <q-btn
+                    icon-right="open_in_new"
+                    :label="props.value"
+                    color="secondary"
+                    flat
+                    dense
+                    class="text-weight-medium"
+                    @click="familyLink(props.value)"
+                  ></q-btn>
+                </q-td>
+              </template>
+              <template #body-cell-clanAcc="props">
+                <q-td :props="props">
+                  <q-btn
+                    icon-right="open_in_new"
+                    :label="props.value"
+                    color="secondary"
+                    flat
+                    dense
+                    class="text-weight-medium"
+                    @click="clanLink(props.value)"
+                  ></q-btn>
+                </q-td>
+              </template>
+            </q-table>
+          </q-card-section>
+        </q-card>
+      </template>
     </div>
-    <ve-histogram
-      :data="pfamChartData"
-      :settings="pfamChartSettings"
-      :legend="legend"
-      :tooltip="tooltip"
-    ></ve-histogram>
-    <q-table
-      :title="pfamTableTitle"
-      :data="pfamTableData"
-      :columns="pfamTableColumns"
-      :pagination.sync="pagination"
-      row-key="start"
-    >
-      <!-- slot name syntax: body-cell-<column_name> -->
-      <q-td
-        slot="body-cell-pfamAcc"
-        slot-scope="props"
-        :props="props"
-      >
-        <q-btn
-          icon-right="open_in_new"
-          :label="props.value"
-          color="secondary"
-          flat
-          dense
-          @click="familyLink(props.value)"
-        ></q-btn>
-      </q-td>
-      <q-td
-        slot="body-cell-clanAcc"
-        slot-scope="props"
-        :props="props"
-      >
-        <q-btn
-          icon-right="open_in_new"
-          :label="props.value"
-          color="secondary"
-          flat
-          dense
-          @click="clanLink(props.value)"
-        ></q-btn>
-      </q-td>
-    </q-table>
-    <br />
-    <q-table
-      title="Pfam32 Reference Data"
-      :data="pfam32ReferenceData"
-      :columns="pfamReferenceColumns"
-      :pagination.sync="pagination"
-      row-key="start"
-    >
-      <!-- slot name syntax: body-cell-<column_name> -->
-      <q-td
-        slot="body-cell-pfamAcc"
-        slot-scope="props"
-        :props="props"
-      >
-        <q-btn
-          icon-right="open_in_new"
-          :label="props.value"
-          color="secondary"
-          flat
-          dense
-          @click="familyLink(props.value)"
-        ></q-btn>
-      </q-td>
-      <q-td
-        slot="body-cell-clanAcc"
-        slot-scope="props"
-        :props="props"
-      >
-        <q-btn
-          icon-right="open_in_new"
-          :label="props.value"
-          color="secondary"
-          flat
-          dense
-          @click="clanLink(props.value)"
-        ></q-btn>
-      </q-td>
-    </q-table>
-    <br />
-    <q-table
-      title="Pfam31 Reference Data"
-      :data="pfam31ReferenceData"
-      :columns="pfamReferenceColumns"
-      :pagination.sync="pagination"
-      row-key="start"
-    >
-      <!-- slot name syntax: body-cell-<column_name> -->
-      <q-td
-        slot="body-cell-pfamAcc"
-        slot-scope="props"
-        :props="props"
-      >
-        <q-btn
-          icon-right="open_in_new"
-          :label="props.value"
-          color="secondary"
-          flat
-          dense
-          @click="familyLink(props.value)"
-        ></q-btn>
-      </q-td>
-      <q-td
-        slot="body-cell-clanAcc"
-        slot-scope="props"
-        :props="props"
-      >
-        <q-btn
-          icon-right="open_in_new"
-          :label="props.value"
-          color="secondary"
-          flat
-          dense
-          @click="clanLink(props.value)"
-        ></q-btn>
-      </q-td>
-    </q-table>
-    <hr class="q-hr q-my-xl" />
-    <!-- <q-input
-      v-model="pfamClasses"
-      float-label="Classes"
-      type="textarea"
-    />
-    <q-input
-      v-model="pfamDomainMap"
-      float-label="DomainMap"
-      type="textarea"
-    />
-    <q-input
-      v-model="pfamTopClasses"
-      float-label="TopClasses"
-      type="textarea"
-    />
-    <q-input
-      v-model="pfamTopProbs"
-      float-label="TopProbs"
-      type="textarea"
-    />-->
-    <div class="row justify-center">
-      <img
-        class="center"
-        alt="ANNotate logo"
-        src="~assets/annotate-logo-long-v2-h92.png"
-      />
-    </div>
-    <search-input :seq.sync="seq"></search-input>
   </q-page>
 </template>
 
-<style lang="stylus"></style>
-
-<script>
-// import { mapGetters } from 'vuex'
-import 'echarts/lib/component/legendScroll'
-import numerify from 'numerify'
-import { openURL } from 'quasar'
-import { isFunction } from 'utils-lite'
-import SearchInput from 'components/SearchInput'
-import VeHistogram from 'v-charts/lib/histogram.common'
-
-const itemPoint = color => {
-  return [
-    '<span style="',
-    `background-color:${color};`,
-    'display: inline-block;',
-    'width: 10px;',
-    'height: 10px;',
-    'border-radius: 50%;',
-    'margin-right:2px;',
-    '"></span>'
-  ].join('')
+<style lang="scss">
+.header-section {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-const getFormated = (val, type, digit, defaultVal = '-') => {
-  if (isNaN(val)) return defaultVal
-  if (!type) return val
-  if (isFunction(type)) return type(val, numerify)
+.chart-section {
+  max-width: 1200px;
+  margin: 0 auto;
+}
 
-  digit = isNaN(digit) ? 0 : ++digit
-  const digitStr = `.[${new Array(digit).join(0)}]`
-  let formatter = type
-  switch (type) {
-    case 'KMB':
-      formatter = digit ? `0,0${digitStr}a` : '0,0a'
-      break
-    case 'normal':
-      formatter = digit ? `0,0${digitStr}` : '0,0'
-      break
-    case 'percent':
-      formatter = digit ? `0,0${digitStr}%` : '0,0.[00]%'
-      break
+.chart-card {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   }
-  return numerify(val, formatter)
 }
 
-export default {
-  name: 'PfamDetail',
-  components: { VeHistogram, SearchInput },
-  data () {
-    return {
-      current: {
-        _id: '',
-        domainMap: {},
-        header: '',
-        predictions: [
-          {
+.chart-container {
+  position: relative;
+  min-height: 400px;
+}
+
+.chart-area {
+  width: 100%;
+  height: 400px;
+  transition: all 0.3s ease;
+}
+
+.error-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  padding: 1rem;
+}
+
+.tables-section {
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .q-table {
+    background: white;
+
+    thead tr th {
+      font-weight: 500;
+      color: #205b13;
+    }
+
+    tbody tr:hover {
+      background: rgba(32, 91, 19, 0.05);
+    }
+  }
+
+  .q-card {
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+  }
+}
+
+// Keep existing script section...
+</style>
+
+<script setup lang="ts">
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { openURL } from 'quasar'
+import { pfam, references } from 'src/boot/feathers'
+import { defineQuery, useQuery } from '@pinia/colada'
+import * as echarts from 'echarts'
+// Types
+
+interface TableRow {
+  start: number
+  end: number
+  pfamAcc: string
+  pfamId: string
+  clanAcc: string
+  clanId: string
+  pfamDesc: string
+  score?: string
+  class?: number | string
+}
+
+interface TableColumn {
+  name: string
+  label: string
+  field: string
+  sortable?: boolean
+}
+
+interface ChartData {
+  columns: string[]
+  rows: Record<string, string | number>[]
+}
+
+// Component setup
+const route = useRoute()
+
+const chartError = ref<string | null>(null)
+const forceRender = ref(0) // Add a key to force component re-render
+
+// Watch for route changes to handle navigation
+watch(
+  () => route.params.id,
+  () => {
+    // Force chart re-render when route changes
+    forceRender.value++
+    // Clean up old chart instance
+    if (echartsInstance) {
+      echartsInstance.dispose()
+      echartsInstance = null
+    }
+    // Initialize new chart after a short delay to ensure DOM is ready
+    setTimeout(() => {
+      renderEcharts()
+    }, 100)
+  },
+)
+
+const pfamTableTitle = ref('')
+const pagination = ref({
+  rowsPerPage: 10,
+})
+
+const pfamTableColumns = ref<TableColumn[]>([
+  { name: 'start', label: 'Start', field: 'start', sortable: true },
+  { name: 'end', label: 'End', field: 'end', sortable: true },
+  { name: 'pfamAcc', label: 'Pfam accession', field: 'pfamAcc', sortable: true },
+  { name: 'pfamId', label: 'Pfam ID', field: 'pfamId', sortable: true },
+  { name: 'clanAcc', label: 'Clan accession', field: 'clanAcc', sortable: true },
+  { name: 'clanId', label: 'Clan ID', field: 'clanId', sortable: true },
+  { name: 'pfamDesc', label: 'Pfam description', field: 'pfamDesc', sortable: false },
+])
+
+const pfamReferenceColumns = ref<TableColumn[]>([
+  { name: 'start', label: 'Start', field: 'start', sortable: true },
+  { name: 'end', label: 'End', field: 'end', sortable: true },
+  { name: 'pfamAcc', label: 'Pfam accession', field: 'pfamAcc', sortable: true },
+  { name: 'pfamId', label: 'Pfam ID', field: 'pfamId', sortable: true },
+  { name: 'clanAcc', label: 'Clan accession', field: 'clanAcc', sortable: true },
+  { name: 'clanId', label: 'Clan ID', field: 'clanId', sortable: true },
+  { name: 'pfamDesc', label: 'Pfam description', field: 'pfamDesc', sortable: false },
+])
+
+const pfam31ReferenceData = ref<TableRow[]>([])
+const pfam32ReferenceData = ref<TableRow[]>([])
+
+interface DomainMap {
+  [key: string]: {
+    pfamAcc: string
+    pfamId: string
+    clanAcc: string
+    clanId: string
+    pfamDesc: string
+  }
+}
+
+interface Prediction {
+  classes: number[]
+  top_classes: number[][]
+  top_probs: number[][]
+}
+
+interface Current {
+  _id: string
+  domainMap: DomainMap
+  header: string
+  predictions: Prediction
+  sequence: string
+}
+// Data
+const current = ref<Current>({
+  _id: '',
+  domainMap: {},
+  header: '',
+  predictions: {
+    classes: [],
+    top_classes: [],
+    top_probs: [],
+  },
+  sequence: '',
+})
+
+// Computed properties
+const seqHeader = computed((): string => {
+  if (!current.value) {
+    return ''
+  } else {
+    return current.value.header
+  }
+})
+
+const seqLength = computed((): number | string => {
+  if (!current.value) {
+    return ''
+  } else {
+    return current.value.sequence.length
+  }
+})
+
+// These computed properties are used in the commented-out inputs in the template
+// Keeping them for potential future use
+/*
+const pfamClasses = computed((): string => {
+  if (!current.value) {
+    return ''
+  } else {
+    return JSON.stringify(current.value.predictions.classes, null, '')
+  }
+})
+
+const pfamTopClasses = computed((): string => {
+  if (!current.value) {
+    return ''
+  } else {
+    return JSON.stringify(current.value.predictions.top_classes, null, '')
+  }
+})
+
+const pfamTopProbs = computed((): string => {
+  if (!current.value) {
+    return ''
+  } else {
+    return JSON.stringify(current.value.predictions.top_probs, null, '')
+  }
+})
+
+const pfamDomainMap = computed((): string => {
+  if (!current.value) {
+    return ''
+  } else {
+    return JSON.stringify(current.value.domainMap, null, '')
+  }
+})
+*/
+
+const domainScores = computed((): Record<string, number> => {
+  if (!current.value) {
+    return {}
+  } else {
+    const predictions = current.value.predictions
+    if (!predictions) return {}
+
+    const probs = predictions.top_probs.flat()
+    const counts: Record<string, number[]> = predictions.top_classes
+      .flat()
+      .reduce((a: Record<string, number[]>, c: number, i: number) => {
+        const key = c.toString()
+        if (!Array.isArray(a[key])) {
+          a[key] = []
+        }
+        a[key].push(probs[i] ?? 0)
+        return a
+      }, {})
+
+    const arrAvg = (arr: number[]): number => arr.reduce((a, b) => a + b, 0) / arr.length
+    const scores: Record<string, number> = Object.keys(counts).reduce(
+      (a: Record<string, number>, c: string) => {
+        if (c === '1') {
+          a[c] = 200
+        } else {
+          a[c] = arrAvg(counts[c] ?? []) * 100
+        }
+        return a
+      },
+      {},
+    )
+    return scores
+  }
+})
+
+const labelMap = computed((): Record<string, string> => {
+  if (!current.value) {
+    return {}
+  } else {
+    const scores = domainScores.value
+    return Object.keys(scores)
+      .sort((a, b) => (scores[b] ?? 0) - (scores[a] ?? 0))
+      .reduce((a: Record<string, string>, c: string) => {
+        const domain = current.value.domainMap[c]
+        if (c === '1' && domain) {
+          a[domain.pfamId] = domain.pfamId
+        } else if (domain) {
+          a[domain.pfamId] = `${domain.pfamId}(${(scores[c] ?? 0).toFixed(1)})`
+        }
+        return a
+      }, {})
+  }
+})
+
+const sortedDomains = computed((): string[] => {
+  if (!current.value) {
+    return []
+  } else {
+    return Object.keys(labelMap.value)
+  }
+})
+
+// Add a new method for handling chart errors
+const handleChartError = (err: unknown, context: string) => {
+  console.error(`Error in ${context}:`, err)
+  chartError.value = err instanceof Error ? err.message : `Error in ${context}`
+}
+
+// Update the computed properties to avoid side effects
+const pfamChartData = computed((): ChartData => {
+  try {
+    if (!current.value) {
+      return { columns: [], rows: [] }
+    } else {
+      const predictions = current.value.predictions
+      if (!predictions) return { columns: [], rows: [] }
+
+      const aaKey = 'aa'
+      const rows = current.value.sequence.split('').map((v: string, i: number) => {
+        const row: Record<string, string | number> = (predictions.top_classes[i] ?? []).reduce(
+          (a: Record<string, number>, c: number, ii: number) => {
+            if (c && current.value.domainMap[c]) {
+              const pfamId = current.value.domainMap[c].pfamId
+              a[pfamId] = predictions.top_probs[i]?.[ii] ?? 0
+              if (c === 1 && a[pfamId] !== undefined) {
+                a[pfamId] *= -1
+              }
+            }
+            return a
+          },
+          {},
+        )
+        row[aaKey] = v
+        return row
+      })
+
+      return {
+        columns: [aaKey].concat(sortedDomains.value),
+        rows,
+      }
+    }
+  } catch (err) {
+    // Log error but don't modify state in computed
+    console.error('Error creating chart data:', err)
+    return { columns: [], rows: [] }
+  }
+})
+
+const pfamChartSettings = computed(() => {
+  try {
+    if (!current.value) {
+      return {
+        stack: { domains: [] },
+        yAxisType: ['percent'],
+        yAxisName: ['Probability'],
+        max: [1],
+        min: [-1],
+        digit: 2,
+        labelMap: {},
+      }
+    } else {
+      // Make sure sortedDomains exists and has values
+      const domains = sortedDomains.value || []
+      const labelMapValue = labelMap.value || {}
+
+      return {
+        stack: { domains: domains },
+        yAxisType: ['percent'],
+        yAxisName: ['Probability'],
+        max: [1],
+        min: [-1],
+        digit: 2,
+        labelMap: labelMapValue,
+      }
+    }
+  } catch (err) {
+    // Log error but don't modify state in computed
+    console.error('Error creating chart settings:', err)
+    return {}
+  }
+})
+
+const pfamTableData = computed((): TableRow[] => {
+  if (!current.value) {
+    return []
+  } else {
+    const predictions = current.value.predictions
+    if (!predictions) return []
+
+    const PROB_MINIMUM = 0.008
+    const SCORE_THRESHOLD = 0.5
+    const domainThresholds = Object.keys(domainScores.value).reduce(
+      (a: Record<string, number>, c: string) => {
+        const score = domainScores.value[c] ?? 0
+        if (score > 100 || score < PROB_MINIMUM * 100) {
+          a[c] = 999
+        } else if (score > 50) {
+          a[c] = 0.5
+        } else {
+          a[c] = (score * SCORE_THRESHOLD) / 100
+        }
+        return a
+      },
+      {},
+    )
+
+    const LINK_THRESHOLD = 4 // gap of 0, 1, 2, 3 will be linked
+    const MIN_REGION_LENGTH = 4
+    const topClasses = predictions.top_classes
+    const topProbs = predictions.top_probs
+
+    return topClasses
+      .reduce((a: number[], classes: number[], i: number) => {
+        const c1 = classes[0] ?? 1 // Default to 1 if not present
+        const c2 = classes[1]
+        const p2 = topProbs[i]?.[1]
+        // start condition: prob over threshold
+        let c = c1
+        if (
+          c1 === 1 &&
+          c2 !== undefined &&
+          p2 !== undefined &&
+          p2 > (domainThresholds[c2.toString()] ?? 0)
+        ) {
+          c = c2
+        }
+        a[i] = c
+        return a
+      }, [])
+      .reduce((a: TableRow[], c: number, i: number) => {
+        const recentRegion = a.slice(-1)[0]
+        if (!recentRegion && c !== 1 && current.value.domainMap[c]) {
+          // first region
+          a.push({
+            start: i + 1, // 1-indexed
+            end: i + 1,
+            pfamAcc: current.value.domainMap[c].pfamAcc,
+            pfamId: current.value.domainMap[c].pfamId,
+            clanAcc: current.value.domainMap[c].clanAcc,
+            clanId: current.value.domainMap[c].clanId,
+            pfamDesc: current.value.domainMap[c].pfamDesc,
+            score: domainScores.value[c]?.toFixed(1) ?? '0.0',
+            class: c,
+          })
+        } else if (!!recentRegion && c === recentRegion.class && current.value.domainMap[c]) {
+          if (i - recentRegion.end < LINK_THRESHOLD) {
+            recentRegion.end = i + 1
+          } else {
+            a.push({
+              start: i + 1, // 1-indexed
+              end: i + 1,
+              pfamAcc: current.value.domainMap[c].pfamAcc,
+              pfamId: current.value.domainMap[c].pfamId,
+              clanAcc: current.value.domainMap[c].clanAcc,
+              clanId: current.value.domainMap[c].clanId,
+              pfamDesc: current.value.domainMap[c].pfamDesc,
+              score: domainScores.value[c]?.toFixed(1) ?? '0.0',
+              class: c,
+            })
+          }
+        } else if (
+          !!recentRegion &&
+          c !== 1 &&
+          c !== recentRegion.class &&
+          current.value.domainMap[c]
+        ) {
+          a.push({
+            start: i + 1, // 1-indexed
+            end: i + 1,
+            pfamAcc: current.value.domainMap[c].pfamAcc,
+            pfamId: current.value.domainMap[c].pfamId,
+            clanAcc: current.value.domainMap[c].clanAcc,
+            clanId: current.value.domainMap[c].clanId,
+            pfamDesc: current.value.domainMap[c].pfamDesc,
+            score: domainScores.value[c]?.toFixed(1) ?? '0.0',
+            class: c,
+          })
+        }
+        return a
+      }, [])
+      .filter((row: TableRow) => row.end - row.start > MIN_REGION_LENGTH - 2)
+  }
+})
+
+const uniprotRe =
+  /^>(?<database>[a-z]+)\|(?<accession>[A-Z0-9]+)\|(?<entry_name>[A-Z0-9]+_[A-Z0-9]+) (?<description>.*?)(?: OS=(?<organism>.*?))?(?: GN=(?<gene>.*?))?(?: PE=(?<protein_existence>\d))?(?: SV=(?<sequence_version>\d+))?$/
+
+const uniprotAcc = computed((): string => {
+  const header = current.value?.header
+  if (!header || header.startsWith('>PROTEIN_')) return ''
+
+  let match = header.match(uniprotRe)
+  if (match?.groups?.accession) {
+    console.log('match.groups.accession', match.groups.accession)
+    return `${match.groups.accession}.${match.groups.sequence_version ?? 1}`
+  }
+
+  match = header.match(/^>(?<accession>\w+)(?:\.(?<sequence_version>\d+))?/)
+  if (match?.groups?.accession) {
+    return `${match.groups.accession}.${match.groups.sequence_version ?? 1}`
+  }
+  return ''
+})
+
+// Methods
+const familyLink = (pfamAcc: string): void => {
+  openURL(`http://pfam.xfam.org/family/${pfamAcc}`)
+}
+
+const clanLink = (clanAcc: string): void => {
+  openURL(`http://pfam.xfam.org/clan/${clanAcc}`)
+}
+
+const useReferenceData = defineQuery(() => {
+  const { data: referenceData, ...rest } = useQuery({
+    staleTime: Infinity,
+    key: () => ['references', uniprotAcc.value],
+    query: async () => {
+      // check local storage
+      if (!uniprotAcc.value) {
+        return { data: [] }
+      }
+      console.log(`Fetching references for ${uniprotAcc.value}`)
+      const cachedData = localStorage.getItem(`references-${uniprotAcc.value}`)
+      if (cachedData) {
+        return JSON.parse(cachedData)
+      }
+      const result = await references.find({ query: { seqAcc: uniprotAcc.value } })
+      localStorage.setItem(`references-${uniprotAcc.value}`, JSON.stringify(result))
+      return result
+    },
+  })
+  return { ...rest, referenceData }
+})
+const { referenceData } = useReferenceData()
+watch(
+  () => referenceData.value,
+  (newVal) => {
+    console.log('referenceData watcher', newVal)
+    try {
+      interface ReferenceData {
+        refName: string
+        start: number
+        end: number
+        [key: string]: unknown
+      }
+      if (Array.isArray(newVal?.data)) {
+        pfam32ReferenceData.value = newVal.data
+          .filter((r: ReferenceData) => r.refName === 'pfam32')
+          .sort((a: ReferenceData, b: ReferenceData) => a.start - b.start)
+        pfam31ReferenceData.value = newVal.data
+          .filter((r: ReferenceData) => r.refName === 'pfam31')
+          .sort((a: ReferenceData, b: ReferenceData) => a.start - b.start)
+      }
+    } catch (err) {
+      handleChartError(err, 'pfam32 reference data update')
+    }
+  },
+)
+
+// Add watchers for chart data to catch potential errors
+watch(
+  () => current.value,
+  (newVal) => {
+    console.log('current watcher', current.value)
+    try {
+      // Reset chart error when new data is loaded
+      chartError.value = null
+      // Basic validation
+      if (!newVal || !newVal.sequence || !newVal.predictions) {
+        chartError.value = 'Incomplete data for chart rendering'
+      }
+    } catch (err) {
+      handleChartError(err, 'data update')
+    }
+  },
+)
+
+const { data: pfamData, isLoading } = useQuery({
+  staleTime: Infinity,
+  key: () => ['pfam', route.params.id as string],
+  query: async () => {
+    // check local storage
+    const id = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id
+    console.log(`Fetching Pfam data for ${id}`)
+    if (!id) {
+      throw new Error('ID is undefined')
+    }
+    const cachedData = localStorage.getItem(`pfam-${id}`)
+    if (cachedData) {
+      return JSON.parse(cachedData)
+    }
+    const result = await pfam.get(id)
+    localStorage.setItem(`pfam-${id}`, JSON.stringify(result))
+    return result
+  },
+})
+
+if (pfamData.value) {
+  current.value = pfamData.value
+} else {
+  current.value = {
+    _id: '',
+    domainMap: {},
+    header: '',
+    predictions: {
+      classes: [],
+      top_classes: [],
+      top_probs: [],
+    },
+    sequence: '',
+  }
+}
+
+watch(
+  () => pfamData.value,
+  (newVal) => {
+    console.log('pfamData watcher', newVal)
+    try {
+      if (newVal) {
+        current.value = newVal
+      } else {
+        current.value = {
+          _id: '',
+          domainMap: {},
+          header: '',
+          predictions: {
             classes: [],
             top_classes: [],
-            top_probs: []
-          }
-        ],
-        seq: ''
-      },
-      seq: '',
-      legend: {
-        type: 'scroll',
-        align: 'left',
-        left: 10
-      },
-      tooltip: {
-        trigger: 'axis',
-        formatter (items) {
-          // {
-          //   componentType: 'series',
-          //   // Series type
-          //   seriesType: string,
-          //   // Series index in option.series
-          //   seriesIndex: number,
-          //   // Series name
-          //   seriesName: string,
-          //   // Data name, or category name
-          //   name: string,
-          //   // Data index in input data array
-          //   dataIndex: number,
-          //   // Original data as input
-          //   data: Object,
-          //   // Value of data. In most series it is the same as data.
-          //   // But in some series it is some part of the data (e.g., in map, radar)
-          //   value: number|Array|Object,
-          //   // encoding info of coordinate system
-          //   // Key: coord, like ('x' 'y' 'radius' 'angle')
-          //   // value: Must be an array, not null/undefined. Contain dimension indices, like:
-          //   // {
-          //   //     x: [2] // values on dimension index 2 are mapped to x axis.
-          //   //     y: [0] // values on dimension index 0 are mapped to y axis.
-          //   // }
-          //   encode: Object,
-          //   // dimension names list
-          //   dimensionNames: Array<String>,
-          //   // data dimension index, for example 0 or 1 or 2 ...
-          //   // Only work in `radar` series.
-          //   dimensionIndex: number,
-          //   // Color of data
-          //   color: string,
-          //   // the percentage of pie chart
-          //   percent: number,
-          // }
-          let tpl = []
-          tpl.push(`${items[0].dataIndex + 1}: ${items[0].name}<br>`)
-          items
-            .sort((a, b) => Math.abs(b.value || 0) - Math.abs(a.value || 0))
-            .forEach(item => {
-              if (isNaN(item.value)) return
-              const seriesName = item.seriesName
-              const type = 'percent'
-              const digit = 2
-              tpl.push(itemPoint(item.color))
-              tpl.push(`${seriesName}: `)
-              tpl.push(getFormated(item.value, type, digit))
-              tpl.push('<br>')
-            })
-
-          return tpl.join('')
+            top_probs: [],
+          },
+          sequence: '',
         }
-      },
-      pfamTableTitle: '', // 'Predicted Pfam Regions'
-      pagination: {
-        // sortBy: 'name',
-        // descending: false,
-        // page: 2,
-        rowsPerPage: 10
-        // rowsNumber: xx if getting data from a server
-      },
-      pfamTableColumns: [
-        // column Object definition
-        // {
-        //   // unique id (used by row-key, pagination.sortBy, ...)
-        //   name: 'desc',
-
-        //   // label for header
-        //   label: 'Dessert (100g serving)',
-
-        //   // row Object property to determine value for this column
-        //   field: 'name',
-        //   // OR field: row => row.some.nested.prop
-
-        //   // (optional) if we use visible-columns, this col will always be visible
-        //   required: true,
-
-        //   // (optional) alignment
-        //   align: 'left',
-
-        //   // (optional) tell QTable you want this column sortable
-        //   sortable: true,
-
-        //   // (optional) compare function if you have
-        //   // some custom data or want a specific way to compare two rows
-        //   sort: (a, b) => parseInt(a, 10) - parseInt(b, 10)
-        //   // function return value:
-        //   //   * is less than 0 then sort a to an index lower than b, i.e. a comes first
-        //   //   * is 0 then leave a and b unchanged with respect to each other, but sorted with respect to all different elements
-        //   //   * is greater than 0 then sort b to an index lower than a, i.e. b comes first
-
-        //   // (optional) you can format the data with a function
-        //   format: val => `${val}%`
-
-        //   // v0.17.9+; if using scoped slots, apply this yourself instead
-        //   style: 'width: 500px',
-        //   classes: 'my-special-class'
-        // }
-        { name: 'start', label: 'Start', field: 'start', sortable: true },
-        { name: 'end', label: 'End', field: 'end', sortable: true },
-        { name: 'pfamAcc', label: 'Pfam accession', field: 'pfamAcc', sortable: true },
-        { name: 'pfamId', label: 'Pfam ID', field: 'pfamId', sortable: true },
-        { name: 'clanAcc', label: 'Clan accession', field: 'clanAcc', sortable: true },
-        { name: 'clanId', label: 'Clan ID', field: 'clanId', sortable: true },
-        { name: 'pfamDesc', label: 'Pfam description', field: 'pfamDesc', sortable: false },
-        { name: 'score', label: 'Score', field: 'score', sortable: true }
-      ],
-      pfamReferenceColumns: [
-        { name: 'start', label: 'Start', field: 'start', sortable: true },
-        { name: 'end', label: 'End', field: 'end', sortable: true },
-        { name: 'pfamAcc', label: 'Pfam accession', field: 'pfamAcc', sortable: true },
-        { name: 'pfamId', label: 'Pfam ID', field: 'pfamId', sortable: true },
-        { name: 'clanAcc', label: 'Clan accession', field: 'clanAcc', sortable: true },
-        { name: 'clanId', label: 'Clan ID', field: 'clanId', sortable: true },
-        { name: 'pfamDesc', label: 'Pfam description', field: 'pfamDesc', sortable: false }
-      ],
-      pfam31ReferenceData: [],
-      pfam32ReferenceData: []
+      }
+    } catch (err) {
+      handleChartError(err, 'pfam data update')
     }
   },
-  computed: {
-    seqHeader () {
-      if (!this.current) {
-        return ''
-      } else {
-        return this.current.header
-      }
-    },
-    seqLength () {
-      if (!this.current) {
-        return ''
-      } else {
-        return this.current.seq.length
-      }
-    },
-    pfamClasses () {
-      if (!this.current) {
-        return ''
-      } else {
-        return JSON.stringify(this.current.predictions[0].classes, null, '')
-      }
-    },
-    pfamTopClasses () {
-      if (!this.current) {
-        return ''
-      } else {
-        return JSON.stringify(this.current.predictions[0].top_classes, null, '')
-      }
-    },
-    pfamTopProbs () {
-      if (!this.current) {
-        return ''
-      } else {
-        return JSON.stringify(this.current.predictions[0].top_probs, null, '')
-      }
-    },
-    pfamDomainMap () {
-      if (!this.current) {
-        return ''
-      } else {
-        return JSON.stringify(this.current.domainMap, null, '')
-      }
-    },
-    domainScores () {
-      if (!this.current) {
-        return {}
-      } else {
-        const probs = this.current.predictions[0].top_probs.flat()
-        const counts = this.current.predictions[0].top_classes.flat().reduce((a, c, i) => {
-          if (!Array.isArray(a[c])) {
-            a[c] = []
-          }
-          a[c].push(probs[i])
-          return a
-        }, {})
-        const arrAvg = arr => arr.reduce((a, b) => a + b, 0) / arr.length
-        const scores = Object.keys(counts).reduce((a, c) => {
-          if (c === '1') {
-            a[c] = 200
-          } else {
-            a[c] = arrAvg(counts[c]) * 100
-          }
-          return a
-        }, {})
-        return scores
-      }
-    },
-    labelMap () {
-      if (!this.current) {
-        return {}
-      } else {
-        const scores = this.domainScores
-        return Object.keys(scores)
-          .sort((a, b) => scores[b] - scores[a])
-          .reduce((a, c) => {
-            if (c === '1') {
-              a[this.current.domainMap[c].pfamId] = this.current.domainMap[c].pfamId
-            } else {
-              // eslint-disable-next-line standard/computed-property-even-spacing
-              a[this.current.domainMap[c].pfamId] = `${this.current.domainMap[c].pfamId}(${scores[
-                c
-              ].toFixed(1)})`
-            }
-            return a
-          }, {})
-      }
-    },
-    sortedDomains () {
-      if (!this.current) {
-        return []
-      } else {
-        return Object.keys(this.labelMap)
-      }
-    },
-    pfamChartData () {
-      if (!this.current) {
-        return {}
-      } else {
-        const aaKey = 'aa'
-        const rows = this.current.seq.split('').map((v, i) => {
-          const row = this.current.predictions[0].top_classes[i].reduce((a, c, ii) => {
-            a[this.current.domainMap[c].pfamId] = this.current.predictions[0].top_probs[i][ii]
-            if (c === 1) {
-              a[this.current.domainMap[c].pfamId] *= -1
-            }
-            return a
-          }, {})
-          row[aaKey] = v
-          return row
-        })
-        // console.log([aaKey].concat(this.sortedDomains))
-        return {
-          columns: [aaKey].concat(this.sortedDomains),
-          rows
-        }
-      }
-    },
-    pfamChartSettings () {
-      if (!this.current) {
-        return {}
-      } else {
-        return {
-          stack: { domains: this.sortedDomains },
-          yAxisType: ['percent'],
-          yAxisName: ['Probability'],
-          max: [1],
-          min: [-1],
-          digit: 2,
-          labelMap: this.labelMap
-        }
-      }
-    },
-    pfamTableData () {
-      if (!this.current) {
-        return []
-      } else {
-        // const data = this.current.predictions[0].classes
-        //   .reduce((a, v, i, c) => {
-        //     if (v !== 1) {
-        //       if (v !== c[i - 1]) {
-        //         // start a new row
-        //         a.push({
-        //           start: i + 1, // 1-indexed
-        //           end: i + 1,
-        //           pfamAcc: this.current.domainMap[v].pfamAcc,
-        //           pfamId: this.current.domainMap[v].pfamId,
-        //           clanAcc: this.current.domainMap[v].clanAcc,
-        //           clanId: this.current.domainMap[v].clanId,
-        //           pfamDesc: this.current.domainMap[v].pfamDesc,
-        //           score: this.domainScores[v].toFixed(1)
-        //         })
-        //       } else {
-        //         a.slice(-1)[0].end = i + 1
-        //       }
-        //     }
-        //     return a
-        //   }, [])
-        //   .filter(row => row.end - row.start > 3)
-        // list predictions with score > 1.0
-        const PROB_MINIMUM = 0.008
-        const SCORE_THRESHOLD = 0.5
-        const domainThresholds = Object.keys(this.domainScores).reduce((a, c) => {
-          const score = this.domainScores[c]
-          if (score > 100 || score < PROB_MINIMUM * 100) {
-            a[c] = 999
-          } else if (score > 50) {
-            a[c] = 0.5
-          } else {
-            a[c] = (score * SCORE_THRESHOLD) / 100
-          }
-          return a
-        }, {})
-        // this.$debug(domainThresholds)
-        // regions of the same class will be linked if the gap is less than LINK_THRESHOLD
-        const LINK_THRESHOLD = 4 // gap of 0, 1, 2, 3 will be linked
-        const MIN_REGION_LENGTH = 4
-        const topClasses = this.current.predictions[0].top_classes
-        const topProbs = this.current.predictions[0].top_probs
-        return topClasses
-          .reduce((a, classes, i) => {
-            const [c1, c2] = classes
-            const p2 = topProbs[i][1]
-            // start condition: prob over threshold
-            let c = c1
-            if (c1 === 1 && p2 > domainThresholds[c2]) {
-              c = c2
-            }
-            a[i] = c
-            return a
-          }, [])
-          .reduce((a, c, i, d) => {
-            const recentRegion = a.slice(-1)[0]
-            if (!recentRegion && c !== 1) {
-              // first region
-              a.push({
-                start: i + 1, // 1-indexed
-                end: i + 1,
-                pfamAcc: this.current.domainMap[c].pfamAcc,
-                pfamId: this.current.domainMap[c].pfamId,
-                clanAcc: this.current.domainMap[c].clanAcc,
-                clanId: this.current.domainMap[c].clanId,
-                pfamDesc: this.current.domainMap[c].pfamDesc,
-                score: this.domainScores[c].toFixed(1),
-                class: c
-              })
-            } else if (!!recentRegion && c === recentRegion.class) {
-              if (i - recentRegion.end < LINK_THRESHOLD) {
-                recentRegion.end = i + 1
-              } else {
-                a.push({
-                  start: i + 1, // 1-indexed
-                  end: i + 1,
-                  pfamAcc: this.current.domainMap[c].pfamAcc,
-                  pfamId: this.current.domainMap[c].pfamId,
-                  clanAcc: this.current.domainMap[c].clanAcc,
-                  clanId: this.current.domainMap[c].clanId,
-                  pfamDesc: this.current.domainMap[c].pfamDesc,
-                  score: this.domainScores[c].toFixed(1),
-                  class: c
-                })
-              }
-            } else if (!!recentRegion && c !== 1 && c !== recentRegion.class) {
-              a.push({
-                start: i + 1, // 1-indexed
-                end: i + 1,
-                pfamAcc: this.current.domainMap[c].pfamAcc,
-                pfamId: this.current.domainMap[c].pfamId,
-                clanAcc: this.current.domainMap[c].clanAcc,
-                clanId: this.current.domainMap[c].clanId,
-                pfamDesc: this.current.domainMap[c].pfamDesc,
-                score: this.domainScores[c].toFixed(1),
-                class: c
-              })
-            }
-            return a
-          }, [])
-          .filter(row => row.end - row.start > MIN_REGION_LENGTH - 2)
-      }
-    },
-    uniprotAcc () {
-      const header = this.current.header
-      if (!header || header.startsWith('>PROTEIN_')) return ''
-      // >PROTEIN_00001
-      // https://www.uniprot.org/uniprot/I6AQA9.fasta
-      // >tr|I6AQA9|I6AQA9_9BACT Alpha-mannosidase OS=Opitutaceae bacterium TAV1 OX=278956 GN=OpiT1DRAFT_01631 PE=4 SV=1
-      // parse uniprot format
-      // header.match(/^>tr\|(?<id>\w+)\|.+(?:SV=(?<sv>\d+))?/)
-      let mid = header.match(/^>tr\|(?<id>\w+)\|/)
-      if (mid) {
-        const msv = header.match(/SV=(?<sv>\d+)/)
-        if (msv) {
-          return `${mid.groups.id}.${msv.groups.sv}`
-        }
-        return `${mid.groups.id}.1`
-      }
-      // >I6AQA9.1
-      // >I6AQA9
-      mid = header.match(/^>(?<id>\w+)(?:\.(?<sv>\d+))?/)
-      if (mid) {
-        if (mid.groups.sv) {
-          return `${mid.groups.id}.${mid.groups.sv}`
-        }
-        return `${mid.groups.id}.1`
-      }
-      return ''
+)
+
+// Add debounced watcher for chart data to validate it before rendering
+const validateChartData = () => {
+  try {
+    // Access the computed properties to validate them
+    const chartData = pfamChartData.value
+    const chartSettings = pfamChartSettings.value
+
+    if (!chartData || !chartData.columns || !chartData.rows || chartData.rows.length === 0) {
+      chartError.value = 'Invalid chart data structure'
+      return false
     }
-  },
-  watch: {
-    // call again the method if the route changes
-    $route: 'fetchData'
-  },
-  created () {
-    this.fetchData()
-  },
-  methods: {
-    familyLink (pfamAcc) {
-      openURL(`http://pfam.xfam.org/family/${pfamAcc}`)
-    },
-    clanLink (clanAcc) {
-      openURL(`http://pfam.xfam.org/clan/${clanAcc}`)
-    },
-    async fetchData () {
-      // document.getElementById('q-app').__vue__.$FeathersVuex.api.Pfam
-      const id = this.$route.params.id
-      this.$debug(id)
-      const { Pfam, Reference } = this.$FeathersVuex.api
-      try {
-        // try fetching from the store
-        let result = Pfam.getFromStore(id)
-        if (!result) {
-          // try fetch from server
-          result = await Pfam.get(id)
-        }
-        this.current = result
-        this.seq = `${this.current.header}\n${this.current.seq}`
-      } catch (error) {
-        this.$q.notify({
-          position: 'center',
-          message: 'Result does not exist',
-          actions: [{ label: 'Dismiss' }]
-        })
-      }
-      // fetch reference
-      // document.getElementById('q-app').__vue__.$FeathersVuex.api.Reference
-      if (this.uniprotAcc) {
-        // try fetching from the store
-        let result = Reference.findInStore({ query: { seqAcc: this.uniprotAcc } })
-        if (result.total === 0) {
-          // try fetch from server
-          result = await Reference.find({ query: { seqAcc: this.uniprotAcc } })
-        }
-        this.pfam32ReferenceData = result.data
-          .filter(r => r.refName === 'pfam32')
-          .sort((a, b) => a.start - b.start)
-        this.pfam31ReferenceData = result.data
-          .filter(r => r.refName === 'pfam31')
-          .sort((a, b) => a.start - b.start)
-      }
+
+    if (!chartSettings || !chartSettings.stack || !chartSettings.yAxisType) {
+      chartError.value = 'Invalid chart settings'
+      return false
     }
+
+    // Check for domain map consistency
+    const domains = sortedDomains.value
+    if (domains.length === 0 && current.value && current.value.sequence) {
+      chartError.value = 'No domains found to display'
+      return false
+    }
+
+    return true
+  } catch (err) {
+    handleChartError(err, 'chart validation')
+    return false
   }
 }
+
+watch([() => pfamChartData.value, () => pfamChartSettings.value], () => {
+  // Use setTimeout to ensure this runs after the Vue reactivity system has settled
+  setTimeout(validateChartData, 0)
+})
+
+// Update isChartDataValid to call error handler when appropriate
+const isChartDataValid = computed((): boolean => {
+  try {
+    if (!current.value || !current.value.sequence || !current.value.predictions) {
+      return false
+    }
+
+    // Ensure we have valid chart data structure
+    const data = pfamChartData.value
+    if (!data || !data.columns || !data.rows || !data.columns.length || !data.rows.length) {
+      return false
+    }
+
+    // Ensure settings are valid
+    const settings = pfamChartSettings.value
+    if (!settings || !settings.stack || !settings.yAxisType || !settings.yAxisName) {
+      return false
+    }
+
+    // Check for domain map consistency
+    const domains = sortedDomains.value
+    if (domains.length === 0 && current.value && current.value.sequence) {
+      return false
+    }
+
+    if (isLoading.value) {
+      return false
+    }
+
+    return true
+  } catch (err) {
+    handleChartError(err, 'chart data validation')
+    return false
+  }
+})
+
+// ECharts setup
+const echartsContainer = ref<HTMLElement | null>(null)
+let echartsInstance: echarts.ECharts | null = null
+
+// Define interfaces for ECharts parameters
+interface EChartsTooltipParam {
+  dataIndex: number
+  seriesName: string
+  value: number
+  color: string
+  name?: string
+}
+
+// Convert v-charts settings to echarts format
+const getEchartsOptions = () => {
+  try {
+    if (!isChartDataValid.value) {
+      return null
+    }
+
+    const chartData = pfamChartData.value
+    // Use chartSettings directly from computed property instead
+    const domains = sortedDomains.value
+
+    // Generate series for each domain
+    const series = domains.map((domain) => {
+      return {
+        name: labelMap.value[domain] || domain,
+        type: 'bar',
+        stack: 'domains',
+        data: chartData.rows.map((row) => row[domain]),
+      }
+    })
+
+    // Helper functions
+    const itemPoint = (color: string): string => {
+      return [
+        '<span style="',
+        `background-color:${color};`,
+        'display: inline-block;',
+        'width: 10px;',
+        'height: 10px;',
+        'border-radius: 50%;',
+        'margin-right:2px;',
+        '"></span>',
+      ].join('')
+    }
+
+    // Create tooltip formatter similar to the one in v-charts
+    const tooltipFormatter = (params: EChartsTooltipParam | EChartsTooltipParam[]) => {
+      // console.log('tooltipFormatter', params)
+      const tpl: string[] = []
+      // Convert to array if it's a single item
+      const paramsArray = Array.isArray(params) ? params : [params]
+
+      if (paramsArray.length > 0 && paramsArray[0]) {
+        // Position in sequence (1-indexed)
+        const position = paramsArray[0].dataIndex + 1
+        // Show amino acid at this position
+        const aa = chartData.rows[paramsArray[0].dataIndex]?.aa
+        tpl.push(`${position}: ${aa}<br>`)
+
+        // Sort items by absolute value like in original chart
+        paramsArray
+          .sort((a, b) => Math.abs(b.value || 0) - Math.abs(a.value || 0))
+          .forEach((item) => {
+            // console.log(`item ${i}`, item)
+            if (isNaN(item.value)) return
+            // console.log(`isNaN ${i}`, item)
+            const seriesName = item.seriesName
+            const value = item.value
+            tpl.push(itemPoint(item.color))
+            tpl.push(`${seriesName}: `)
+            // Format as percentage with 2 decimal places
+            tpl.push(`${(value * 100).toFixed(2)}%`)
+            tpl.push('<br>')
+          })
+      }
+      return tpl.join('')
+    }
+
+    const option = {
+      tooltip: {
+        trigger: 'axis' as const,
+        axisPointer: {
+          type: 'shadow' as const,
+        },
+        formatter: tooltipFormatter,
+      },
+      legend: {
+        type: 'scroll' as const,
+        align: 'left' as const,
+        left: 10,
+        data: domains.map((domain) => labelMap.value[domain] || domain),
+      },
+      grid: {
+        containLabel: true,
+        left: 20,
+        right: 20,
+        bottom: 20,
+      },
+      xAxis: {
+        type: 'category' as const,
+        data: chartData.rows.map((row) => row.aa as string), // Show amino acids like in original chart
+        silent: false,
+        axisLabel: {
+          show: true,
+        },
+        axisTick: { alignWithLabel: true },
+      },
+      yAxis: {
+        type: 'value' as const,
+        min: -1,
+        max: 1,
+        axisLabel: {
+          formatter: (value: number) => {
+            // Format as percent
+            return `${Math.abs(value * 100)}%`
+          },
+        },
+        name: 'Probability',
+      },
+      series: series,
+      // animation: false, // Disable animation for better performance with large datasets
+      color: [
+        '#19d4ae',
+        '#5ab1ef',
+        '#fa6e86',
+        '#ffb980',
+        '#0067a6',
+        '#c4b4e4',
+        '#d87a80',
+        '#9cbbff',
+        '#d9d0c7',
+        '#87a997',
+        '#d49ea2',
+        '#5b4947',
+        '#7ba3a8',
+      ],
+    }
+
+    return option
+  } catch (err) {
+    handleChartError(err, 'echarts option generation')
+    return null
+  }
+}
+
+const renderEcharts = () => {
+  try {
+    if (!echartsContainer.value || !isChartDataValid.value) return
+
+    if (!echartsInstance) {
+      // Initialize chart
+      echartsInstance = echarts.init(echartsContainer.value)
+
+      // Handle resize
+      const resizeHandler = () => {
+        echartsInstance?.resize()
+      }
+      window.addEventListener('resize', resizeHandler)
+    }
+
+    const option = getEchartsOptions()
+    if (option) {
+      echartsInstance.setOption(option, true) // Use true to clear previous options
+    }
+  } catch (err) {
+    handleChartError(err, 'echarts rendering')
+  }
+}
+
+// Setup and cleanup for echarts
+onMounted(() => {
+  renderEcharts()
+})
+
+watch(
+  [isChartDataValid, () => pfamChartData.value, () => sortedDomains.value, () => labelMap.value],
+  () => {
+    // Delay rendering to ensure DOM is updated
+    setTimeout(renderEcharts, 0)
+  },
+)
+
+// Use Vue 3 onUnmounted hook for proper cleanup
+onMounted(() => {
+  // Initial render
+  renderEcharts()
+})
+
+// Handle component unmount with Vue 3 syntax
+onUnmounted(() => {
+  if (echartsInstance) {
+    echartsInstance.dispose()
+    echartsInstance = null
+  }
+})
 </script>

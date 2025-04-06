@@ -1,42 +1,33 @@
 <template>
-  <div>
+  <div class="">
     <div class="row justify-center">
-      <div class="col-xs-12 col-sm-10 col-lg-8">
+      <div class="col-xs-12">
         <div class="row no-wrap q-field-floating">
           <q-btn
             id="example-btn"
-            v-tooltip="{
-              content: 'Load example sequences here',
-              show: showTip,
-              delay: { show: 500, hide: 100 }
-            }"
             icon="keyboard_arrow_right"
             color="primary"
             flat
-            round
             dense
             @click="disableTutorial"
           >
+            <q-tooltip
+              v-model="showTip"
+              class="text-body2 tooltip-with-arrow"
+              anchor="top middle"
+              self="bottom middle"
+              :hide-delay="100"
+              transition-show="scale"
+              transition-hide="scale"
+              >Example sequences</q-tooltip
+            >
             <q-menu>
-              <q-list
-                bordered
-                padding
-                class="scroll"
-                style="min-width: 100px; max-width: 90vw;"
-              >
+              <q-list bordered padding class="scroll" style="min-width: 100px; max-width: 90vw">
                 <q-item>
                   <q-item-section>
-                    <q-item-label
-                      id="recents__header"
-                      header
-                    >
-                      Recent Submissions
-                    </q-item-label>
+                    <q-item-label id="recents__header" header> Recent Submissions </q-item-label>
                   </q-item-section>
-                  <q-item-section
-                    top
-                    side
-                  >
+                  <q-item-section top side>
                     <div class="text-grey-8 q-gutter-xs">
                       <q-btn
                         class="gt-xs"
@@ -47,11 +38,7 @@
                         icon="delete"
                         @click="clearRecents"
                       >
-                        <q-tooltip
-                          :delay="500"
-                          anchor="center left"
-                          self="center right"
-                        >
+                        <q-tooltip :delay="500" anchor="center left" self="center right">
                           Clear Recent Submissions
                         </q-tooltip>
                       </q-btn>
@@ -69,27 +56,17 @@
                     <q-item-label lines="1">
                       {{ fastaHeader(fasta) }}
                     </q-item-label>
-                    <q-item-label
-                      caption
-                      lines="1"
-                    >
+                    <q-item-label caption lines="1">
                       {{ fastaLine(fasta) }}
                     </q-item-label>
                   </q-item-section>
 
-                  <q-item-section
-                    side
-                    top
-                  >
-                    <q-item-label caption>
-                      {{ fastaLength(fasta) }} aa
-                    </q-item-label>
+                  <q-item-section side top>
+                    <q-item-label caption> {{ fastaLength(fasta) }} aa </q-item-label>
                   </q-item-section>
                 </q-item>
                 <q-separator spaced />
-                <q-item-label header>
-                  Example Proteins
-                </q-item-label>
+                <q-item-label header> Example Proteins </q-item-label>
                 <q-item
                   v-for="fasta in examples"
                   :key="fasta"
@@ -101,41 +78,31 @@
                     <q-item-label lines="1">
                       {{ fastaId(fasta) }}
                     </q-item-label>
-                    <q-item-label
-                      caption
-                      lines="1"
-                    >
+                    <q-item-label caption lines="1">
                       {{ fastaDescription(fasta) }}
                     </q-item-label>
                   </q-item-section>
 
-                  <q-item-section
-                    side
-                    top
-                  >
-                    <q-item-label caption>
-                      {{ fastaLength(fasta) }} aa
-                    </q-item-label>
+                  <q-item-section side top>
+                    <q-item-label caption> {{ fastaLength(fasta) }} aa </q-item-label>
                   </q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
           </q-btn>
           <q-input
-            :value="seq"
+            v-model="seq"
             class="col q-subheading protein-field"
             clearable
             autofocus
             autocomplete="off"
-            label="Protein Sequence"
+            label="Protein Sequence in FASTA format"
             type="textarea"
-            rows="2"
             autogrow
             :hint="seqHelper"
-            :error="$v.seq.$error"
-            :error-message="errorMessages($v.seq)"
-            @blur="$v.seq.$touch"
-            @input="$emit('update:seq', $event)"
+            :error="v$.seq.$error"
+            :error-message="errorMessages(v$.seq)"
+            @update:model-value="v$.seq.$touch"
           />
         </div>
       </div>
@@ -146,104 +113,60 @@
         :label="predictLabel"
         color="primary"
         @click="predict"
+        :loading="isLoading"
       />
     </div>
   </div>
 </template>
 
-<script>
-// import { mapState } from 'vuex'
-import { maxLength } from 'vuelidate/lib/validators'
+<script setup lang="ts">
+import { useMutation, useQueryCache } from '@pinia/colada'
+import { useVuelidate } from '@vuelidate/core'
+import { maxLength } from '@vuelidate/validators'
+import { useStorage } from '@vueuse/core'
 import { isProtein } from 'assets/validators'
-/*
-40S ribosomal protein S18 [Homo sapiens]
-NCBI Reference Sequence: NP_072045.1
-https://www.ncbi.nlm.nih.gov/protein/NP_072045.1
-UniProtKB - P62269 (RS18_HUMAN)
-https://www.uniprot.org/uniprot/P62269
->sp|P62269|RS18_HUMAN 40S ribosomal protein S18 OS=Homo sapiens OX=9606 GN=RPS18 PE=1 SV=3
-MSLVIPEKFQHILRVLNTNIDGRRKIAFAITAIKGVGRRYAHVVLRKADIDLTKRAGELT
-EDEVERVITIMQNPRQYKIPDWFLNRQKDVKDGKYSQVLANGLDNKLREDLERLKKIRAH
-RGLRHFWGLRVRGQHTKTTGRRGRTVGVSKKK
+import { md5 } from 'js-md5'
+import { useQuasar } from 'quasar'
+import { pfam } from 'src/boot/feathers'
+import { computed, onMounted, ref, type Ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-UniProtKB - A6XGL2 (A6XGL2_HUMAN)
-https://www.uniprot.org/uniprot/A6XGL2
->tr|A6XGL2|A6XGL2_HUMAN Insulin OS=Homo sapiens OX=9606 GN=INS PE=1 SV=1
-MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAED
-LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN
+const seq = defineModel('seq', {
+  type: String,
+  default: '',
+})
 
-UniProtKB - P04745 (AMY1_HUMAN)
-https://www.uniprot.org/uniprot/P04745
->sp|P04745|AMY1_HUMAN Alpha-amylase 1 OS=Homo sapiens OX=9606 GN=AMY1A PE=1 SV=2
-MKLFWLLFTIGFCWAQYSSNTQQGRTSIVHLFEWRWVDIALECERYLAPKGFGGVQVSPP
-NENVAIHNPFRPWWERYQPVSYKLCTRSGNEDEFRNMVTRCNNVGVRIYVDAVINHMCGN
-AVSAGTSSTCGSYFNPGSRDFPAVPYSGWDFNDGKCKTGSGDIENYNDATQVRDCRLSGL
-LDLALGKDYVRSKIAEYMNHLIDIGVAGFRIDASKHMWPGDIKAILDKLHNLNSNWFPEG
-SKPFIYQEVIDLGGEPIKSSDYFGNGRVTEFKYGAKLGTVIRKWNGEKMSYLKNWGEGWG
-FMPSDRALVFVDNHDNQRGHGAGGASILTFWDARLYKMAVGFMLAHPYGFTRVMSSYRWP
-RYFENGKDVNDWVGPPNDNGVTKEVTINPDTTCGNDWVCEHRWRQIRNMVNFRNVVDGQP
-FTNWYDNGSNQVAFGRGNRGFIVFNNDDWTFSLTLQTGLPAGTYCDVISGDKINGNCTGI
-KIYVSDDGKAHFSISNSAEDPFIAIHAESKL
-*/
-/*
->tr|A6XGL2|A6XGL2_HUMAN Insulin OS=Homo sapiens OX=9606 GN=INS PE=1 SV=1
-MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAED
-LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN
- >sp|P62269|RS18_HUMAN 40S ribosomal protein S18 OS=Homo sapiens OX=9606 GN=RPS18 PE=1 SV=3
-MSLVIPEKFQHILRVLNTNIDGRRKIAFAITAIKGVGRRYAHVVLRKADIDLTKRAGELT
-EDEVERVITIMQNPRQYKIPDWFLNRQKDVKDGKYSQVLANGLDNKLREDLERLKKIRAH
-RGLRHFWGLRVRGQHTKTTGRRGRTVGVSKKK
->sp|P04745|AMY1_H>UMAN Alpha-amylase 1 OS=Homo sapiens OX=9606 GN=AMY1A PE=1 SV=2
-MKLFWLLFTIGFCWAQYSSNTQQGRTSIVHLFEWRWVDIALECERYLAPKGFGGVQVSPP
-NENVAIHNPFRPWWERYQPVSYKLCTRSGNEDEFRNMVTRCNNVGVRIYVDAVINHMCGN
-AVSAGTSSTCGSYFNPGSRDFPAVPYSGWDFNDGKCKTGSGDIENYNDATQVRDCRLSGL
-LDLALGKDYVRSKIAE>YMNHLIDIGVAGFRIDASKHMWPGDIKAILDKLHNLNSNWFPEG
-SKPFIYQEVIDLGGEPIKSSDYFGNGRVTEFKYGAKLGTVIRKWNGEKMSYLKNWGEGWG
-FMPSDRALVFVDNHDNQRGHGAGGASILTFWDARLYKMAVGFMLAHPYGFTRVMSSYRWP
-RYFENGKDVNDWVGPPNDNGVTKEVTINPDTTCGNDWVCEHRWRQIRNMVNFRNVVDGQP
-FTNWYDNGSNQVAFGRGNRGFIVFNNDDWTFSLTLQTGLPAGTYCDVISGDKINGNCTGI
-KIYVSDDGKAHFSISNSAEDPFIAIHAESKL
-*/
-/*
-
-MKLFWLLFTIGFCWAQYSSNTQQGRTSIVHLFEWRWVDIALECERYLAPKGFGGVQVSPP
-
-NENVAIHNPFRPWWERYQPVSYKLCTRSGNEDEFRNMVTRCNNVGVRIYVDAVINHMCGN
-AVSAGTSSTCGSYFNPGSRDFPAVPYSGWDFNDGKCKTGSGDIENYNDATQVRDCRLSGL
-
-LDLALGKDYVRSKIAE>YMNHLIDIGVAGFRIDASKHMWPGDIKAILDKLHNLNSNWFPEG
-SKPFIYQEVIDLGGEPIKSSDYFGNGRVTEFKYGAKLGTVIRKWNGEKMSYLKNWGEGWG
-
-FMPSDRALVFVDNHDNQRGHGAGGASILTFWDARLYKMAVGFMLAHPYGFTRVMSSYRWP
-RYFENGKDVNDWVGPPNDNGVTKEVTINPDTTCGNDWVCEHRWRQIRNMVNFRNVVDGQP
-FTNWYDNGSNQVAFGRGNRGFIVFNNDDWTFSLTLQTGLPAGTYCDVISGDKINGNCTGI
-KIYVSDDGKAHFSISNSAEDPFIAIHAESKL
-
-*/
-export default {
-  name: 'SearchInput',
-  props: {
-    seq: {
-      type: String,
-      default: ''
-    }
+// Validation rules
+const rules = {
+  seq: {
+    maxLength: maxLength(50000),
+    isProtein: isProtein(),
   },
-  data () {
-    return {
-      model: 'pfam',
-      version: '1568346315',
-      showTip: false,
-      showTutorial: true,
-      recents: [],
-      examples: [
-        `>tr|A6XGL2|A6XGL2_HUMAN Insulin OS=Homo sapiens OX=9606 GN=INS PE=1 SV=1
+}
+
+const v$ = useVuelidate(rules, { seq })
+
+const errorMessages = (vState: { $errors: Array<{ $message: string | Ref<string> }> }) =>
+  vState.$errors
+    .map((error) => (typeof error.$message === 'string' ? error.$message : error.$message.value))
+    .join(', ')
+
+const router = useRouter()
+const $q = useQuasar()
+
+const model = ref('pfam')
+const version = ref('1568346315')
+
+// Example sequences
+const examples = ref([
+  `>tr|A6XGL2|A6XGL2_HUMAN Insulin OS=Homo sapiens OX=9606 GN=INS PE=1 SV=1
 MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAED
 LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN`,
-        `>sp|P62269|RS18_HUMAN 40S ribosomal protein S18 OS=Homo sapiens OX=9606 GN=RPS18 PE=1 SV=3
+  `>sp|P62269|RS18_HUMAN 40S ribosomal protein S18 OS=Homo sapiens OX=9606 GN=RPS18 PE=1 SV=3
 MSLVIPEKFQHILRVLNTNIDGRRKIAFAITAIKGVGRRYAHVVLRKADIDLTKRAGELT
 EDEVERVITIMQNPRQYKIPDWFLNRQKDVKDGKYSQVLANGLDNKLREDLERLKKIRAH
 RGLRHFWGLRVRGQHTKTTGRRGRTVGVSKKK`,
-        `>sp|P04745|AMY1_HUMAN Alpha-amylase 1 OS=Homo sapiens OX=9606 GN=AMY1A PE=1 SV=2
+  `>sp|P04745|AMY1_HUMAN Alpha-amylase 1 OS=Homo sapiens OX=9606 GN=AMY1A PE=1 SV=2
 MKLFWLLFTIGFCWAQYSSNTQQGRTSIVHLFEWRWVDIALECERYLAPKGFGGVQVSPP
 NENVAIHNPFRPWWERYQPVSYKLCTRSGNEDEFRNMVTRCNNVGVRIYVDAVINHMCGN
 AVSAGTSSTCGSYFNPGSRDFPAVPYSGWDFNDGKCKTGSGDIENYNDATQVRDCRLSGL
@@ -252,312 +175,326 @@ SKPFIYQEVIDLGGEPIKSSDYFGNGRVTEFKYGAKLGTVIRKWNGEKMSYLKNWGEGWG
 FMPSDRALVFVDNHDNQRGHGAGGASILTFWDARLYKMAVGFMLAHPYGFTRVMSSYRWP
 RYFENGKDVNDWVGPPNDNGVTKEVTINPDTTCGNDWVCEHRWRQIRNMVNFRNVVDGQP
 FTNWYDNGSNQVAFGRGNRGFIVFNNDDWTFSLTLQTGLPAGTYCDVISGDKINGNCTGI
-KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`
-      ]
+KIYVSDDGKAHFSISNSAEDPFIAIHAESKL`,
+])
+
+// Computed properties
+const seqCount = computed(() => {
+  if (!seq.value || typeof seq.value !== 'string') {
+    return 0
+  }
+  const sequence = seq.value.trim()
+  if (sequence[0] === '>') {
+    return sequence.match(/^\s*>/gm)?.length ?? 0
+  }
+  const lines = sequence.split('\n').reduce<string[]>((a, v) => {
+    v = v.trim()
+    if (v) {
+      a.push(v)
     }
-  },
-  storage: {
-    keys: ['showTutorial', 'recents'],
-    namespace: 'protein-input'
-  },
-  validations: {
-    seq: {
-      maxLength: maxLength(50000),
-      isProtein: isProtein()
+    return a
+  }, [])
+  if (
+    lines.length === 1 ||
+    (lines.length >= 2 && lines[0] && lines[1] && lines[0].length === lines[1].length)
+  ) {
+    return 1
+  } else {
+    return lines.length
+  }
+})
+
+const seqLength = computed(() => {
+  const sequence = seq.value.trim()
+  if (!sequence) {
+    return 0
+  }
+  const lines = sequence.split('\n').reduce((a: string[], v) => {
+    v = v.trim()
+    if (v && v[0] !== '>') {
+      a.push(v)
     }
-  },
-  computed: {
-    // ...mapState('pfam', { isCreatePending: 'isCreatePending' }),
-    // pfamCurrent () {
-    //   if (!this.$store.getters['pfam/current']) {
-    //     return ''
-    //   } else {
-    //     return this.$store.getters['pfam/current'].predictions[0].classes
-    //   }
-    // },
-    seqCount () {
-      // support 3 multi-sequence formats
-      // case 1 standard fasta
-      // case 2 no header single sequence
-      // case 2 no header multi sequence
-      // this.$debug(this.seq instanceof String) // always false
-      // this.$debug(Object.prototype.toString.call(this.seq))
-      // this.$debug(typeof this.seq) // 'string' or 'object'
-      if (!this.seq || typeof this.seq !== 'string') {
-        return 0
-      }
-      const seq = this.seq.trim()
-      if (seq[0] === '>') {
-        return seq.match(/^\s*>/gm).length
-      }
-      const lines = seq.split('\n').reduce((a, v) => {
-        // remove empty lines
-        v = v.trim()
-        if (v) {
-          a.push(v)
+    return a
+  }, [])
+  return lines.join('').length
+})
+
+const seqHelper = computed(() => {
+  if (seqCount.value === 0) {
+    return 'Enter a single protein sequence with or without a header'
+  } else if (seqCount.value === 1) {
+    return `1 sequence (${seqLength.value} aa)`
+  } else {
+    return `${seqCount.value} sequences (${seqLength.value} aa total)`
+  }
+})
+
+const predictLabel = computed(() => {
+  if (seqCount.value === 0) {
+    return 'Submit'
+  } else if (seqCount.value === 1) {
+    return `Submit 1 sequence`
+  } else {
+    return `Submit ${seqCount.value} sequences`
+  }
+})
+
+interface SeqItem {
+  header: string
+  sequence: string
+  model: string
+  version: string
+}
+
+const seqList = computed(() => {
+  const list: SeqItem[] = []
+  const sequence = seq.value.trim()
+  if (!sequence) {
+    return list
+  }
+  if (sequence[0] === '>') {
+    return sequence.split('\n').reduce((a: SeqItem[], v) => {
+      v = v.trim()
+      if (v[0] === '>') {
+        const s = {
+          header: v,
+          sequence: '',
+          model: model.value,
+          version: version.value,
         }
-        return a
-      }, [])
-      if (lines.length === 1 || lines[0].length === lines[1].length) {
-        return 1
+        a.push(s)
       } else {
-        return lines.length
-      }
-    },
-    seqLength () {
-      // support 3 multi-sequence formats
-      // case 1 standard fasta
-      // case 2 no header single sequence
-      // case 2 no header multi sequence
-      const seq = this.seq.trim()
-      if (!seq) {
-        return 0
-      }
-      const lines = seq.split('\n').reduce((a, v) => {
-        // remove empty lines
-        v = v.trim()
-        if (v && v[0] !== '>') {
-          a.push(v)
+        const lastItem = a.slice(-1)[0]
+        if (lastItem) {
+          lastItem.sequence += v
         }
-        return a
-      }, [])
-      return lines.join('').length
-    },
-    seqHelper () {
-      if (this.seqCount === 0) {
-        return 'Enter a single protein sequence with or without a header'
-      } else if (this.seqCount === 1) {
-        return `1 sequence (${this.seqLength} aa)`
-      } else {
-        return `${this.seqCount} sequences (${this.seqLength} aa total)`
       }
-    },
-    predictLabel () {
-      if (this.seqCount === 0) {
-        return 'Submit'
-      } else if (this.seqCount === 1) {
-        return `Submit 1 sequence`
-      } else {
-        return `Submit ${this.seqCount} sequences`
-      }
-    },
-    seqList () {
-      const list = []
-      // support 3 multi-sequence formats
-      // case 1 standard fasta
-      // case 2 no header single sequence
-      // case 2 no header multi sequence
-      const seq = this.seq.trim()
-      if (!seq) {
-        return list
-      }
-      if (seq[0] === '>') {
-        return seq.split('\n').reduce((a, v) => {
-          // remove empty lines
-          v = v.trim()
-          if (v[0] === '>') {
-            const s = {
-              header: v,
-              seq: '',
-              model: this.model,
-              version: this.version
-            }
-            a.push(s)
-          } else {
-            a.slice(-1)[0].seq += v
-          }
-          return a
-        }, [])
-      }
-      const lines = seq.split('\n').reduce((a, v) => {
-        // remove empty lines
-        v = v.trim()
-        if (v) {
-          a.push(v)
-        }
-        return a
-      }, [])
-      if (lines.length === 1 || lines[0].length === lines[1].length) {
-        return [
-          {
-            header: '>PROTEIN_00001',
-            seq: lines.join(''),
-            model: this.model,
-            version: this.version
-          }
-        ]
-      } else {
-        return lines.map((v, i) => {
-          return {
-            header: `>PROTEIN_${('' + (i + 1)).padStart(5, '0')}`,
-            seq: v,
-            model: this.model,
-            version: this.version
-          }
-        })
-      }
+      return a
+    }, [])
+  }
+  const lines = sequence.split('\n').reduce<string[]>((a, v) => {
+    v = v.trim()
+    if (v) {
+      a.push(v)
     }
-  },
-  // watch: {
-  //   isCreatePending (val, oldVal) {
-  //     // console.log('isCreatePending new: %s, old: %s', val, oldVal)
-  //     if (val === false) {
-  //       // get id
-  //       if (this.$store.getters['pfam/current']) {
-  //         this.$router.push({ path: `/pfam/${this.$store.getters['pfam/current']._id}` })
-  //       }
-  //     }
-  //   }
-  // },
-  async created () {
-    // display tooltip after 5 secs
-    setTimeout(() => {
-      if (this.showTutorial === true) {
-        this.showTip = true
-      }
-    }, 5000)
-  },
-  methods: {
-    disableTutorial () {
-      this.showTutorial = false
-    },
-    async predict () {
-      // this.$v.seq.$touch()
-      if (!this.seq || this.$v.seq.$error) {
-        this.$q.notify({
-          position: 'center',
-          message: 'Please enter a valid protein sequence',
-          actions: [{ label: 'Dismiss' }]
-        })
-        return
-      }
-      if (this.seqList.length > 1) {
-        this.$q.notify({
-          position: 'center',
-          message: 'Due to limited resources, please submit only 1 sequence',
-          actions: [{ label: 'Dismiss' }]
-        })
-        return
-      }
-      const data = this.seqList[0]
-      const { Pfam } = this.$FeathersVuex.api
-      const pfam = new Pfam(data)
-      // this.$debug(this.seqList[0])
-      this.$ga.event('pfam', 'create', 'count', this.seqCount)
-      this.$ga.event('pfam', 'create', 'length', this.seqLength)
-      // cache sequence in recents
-      this.addToRecents(`${data.header}\n${data.seq}`)
-      try {
-        const result = await pfam.create()
-        this.$debug(result)
-        if (result._id) {
-          this.$router.push({ path: `/pfam/${result._id}` })
-        } else {
-          this.$q.notify({
-            position: 'center',
-            message: 'Server under maintenance',
-            actions: [{ label: 'Dismiss' }]
-          })
-        }
-      } catch (error) {
-        this.$q.notify({
-          position: 'center',
-          message: 'Server under maintenance',
-          actions: [{ label: 'Dismiss' }]
-        })
-      }
-    },
-    addToRecents (fasta) {
-      // LRU cache with limit = 10
-      const limit = 10
-      // check if already in cache
-      const i = this.recents.indexOf(fasta)
-      if (i !== -1) {
-        this.recents.splice(i, 1)
-      }
-      // add to beginning
-      this.recents.unshift(fasta)
-      while (this.recents.length > limit) {
-        // remove last item
-        this.recents.pop()
-      }
-    },
-    clearRecents () {
-      this.recents = []
-    },
-    fastaId (fasta) {
-      /*
-      let seq = `>tr|A6XGL2|A6XGL2_HUMAN Insulin OS=Homo sapiens OX=9606 GN=INS PE=1 SV=1
- mALWMRLLPLLALLaLWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAED
-LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN `
-*/
-      return this.fastaHeader(fasta).split(' ')[0]
-    },
-    fastaHeader (fasta) {
-      return fasta.split('\n')[0].trim()
-    },
-    fastaDescription (fasta) {
-      return this.fastaHeader(fasta).substring(this.fastaId(fasta).length)
-    },
-    fastaLine (fasta) {
-      return fasta
-        .split('\n')
-        .slice(1)
-        .map(line => line.trim().toUpperCase())
-        .join('')
-    },
-    fastaLength (fasta) {
-      return this.fastaLine(fasta).length
-    },
-    loadSeq (fasta) {
-      // console.log(fasta)
-      // this.seq =
-      //   '>PROTEIN_00001\n' +
-      //   fasta
-      //     .split('\n')
-      //     .slice(1)
-      //     .map(line => line.trim().toUpperCase())
-      //     .join('\n')
-      this.$emit(
-        'update:seq',
-        '>PROTEIN_00001\n' +
-          fasta
-            .split('\n')
-            .slice(1)
-            .map(line => line.trim().toUpperCase())
-            .join('\n')
-      )
-    },
-    loadRecent (fasta) {
-      // console.log(fasta)
-      this.$emit('update:seq', fasta)
-    },
-    errorMessages (vState) {
-      if (!vState.$error) {
-        return ''
-      }
-      for (let type in vState.$params) {
-        if (!vState[type]) {
-          if (type === 'apiErrors') {
-            return this.$t(this.errors[vState.$params[type].field])
-          } else {
-            // this.$debug(type, vState.$params[type]) // isProtein {type: "isProtein"}
-            return this.$t(type, vState.$params[type])
-          }
-        }
-      }
+    return a
+  }, [])
+  if (
+    lines.length === 1 ||
+    (lines.length > 1 && lines[0] && lines[1] && lines[0].length === lines[1].length)
+  ) {
+    return [
+      {
+        header: '>PROTEIN_00001',
+        sequence: lines.join(''),
+        model: model.value,
+        version: version.value,
+      },
+    ]
+  } else {
+    return lines.map((v, i) => ({
+      header: `>PROTEIN_${('' + (i + 1)).padStart(5, '0')}`,
+      sequence: v,
+      model: model.value,
+      version: version.value,
+    }))
+  }
+})
+
+const showTip = ref(false)
+const showTutorial = useStorage('protein-input:showTutorial', true)
+// Methods
+const disableTutorial = () => {
+  showTutorial.value = false
+}
+
+// Lifecycle hooks
+onMounted(() => {
+  setTimeout(() => {
+    if (showTutorial.value === true) {
+      showTip.value = true
     }
+  }, 1000)
+})
+
+const queryCache = useQueryCache()
+
+const {
+  mutate: createPfam,
+  isLoading,
+  // status,
+  // asyncStatus,
+} = useMutation({
+  mutation: async (data: SeqItem) => {
+    // compute the md5 hash of the sequence
+    const hash = md5.create().update(data.sequence).update(data.model).update(data.version).hex()
+    console.log('hash', hash)
+    const cached = localStorage.getItem(`pfam-${hash}`)
+    if (cached) {
+      return JSON.parse(cached)
+    }
+    return await pfam.create(data)
+  },
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onSuccess: async (result, data, context) => {
+    // console.log('data', data)
+    console.log('result', result)
+    // // {}
+    // console.log('context', context)
+    // store in local storage
+    localStorage.setItem(`pfam-${result._id}`, JSON.stringify(result))
+    // set query data
+    queryCache.setQueryData(['pfam', result._id], result)
+    await router.push({ name: 'pfam', params: { id: result._id } })
+  },
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onError: (error, data, context) => {
+    // error = {
+    // "name": "BadRequest",
+    // "message": "Error resolving data",
+    // "code": 400,
+    // "className": "bad-request",
+    // }
+    // Error: operation has timed out
+    console.error('error', error)
+    // console.log('data', data)
+    // context = {}
+    // console.log('context', context)
+    $q.notify({
+      type: 'negative',
+      progress: true,
+      position: 'center',
+      message: 'Prediction Service Unavailable',
+      actions: [{ color: 'white', label: 'Dismiss', 'aria-label': 'Dismiss' }],
+    })
+  },
+})
+
+const predict = async () => {
+  const isValid = await v$.value.seq.$validate()
+  if (!seq.value || !isValid) {
+    $q.notify({
+      position: 'center',
+      message: 'Please enter a valid protein sequence',
+      actions: [{ label: 'Dismiss' }],
+    })
+    return
+  }
+  if (seqList.value.length > 1) {
+    $q.notify({
+      position: 'center',
+      message: 'Due to limited resources, please submit only 1 sequence',
+      actions: [{ label: 'Dismiss' }],
+    })
+    return
+  }
+
+  const data = seqList.value[0]
+  if (!data) return
+
+  // window.$ga.event('pfam', 'create', 'count', seqCount.value)
+  // window.$ga.event('pfam', 'create', 'length', seqLength.value)
+
+  addToRecents(`${data.header}\n${data.sequence}`)
+  createPfam(data)
+}
+
+const recents = useStorage<string[]>('protein-input:recents', [])
+
+const addToRecents = (fasta: string) => {
+  const limit = 10
+  const i = recents.value.indexOf(fasta)
+  if (i !== -1) {
+    recents.value.splice(i, 1)
+  }
+  recents.value.unshift(fasta)
+  while (recents.value.length > limit) {
+    recents.value.pop()
   }
 }
+
+const clearRecents = () => {
+  recents.value = []
+}
+
+const fastaId = (fasta: string) => {
+  const header = fastaHeader(fasta)
+  return header ? header.split(' ')[0] : ''
+}
+
+const fastaHeader = (fasta: string) => {
+  const lines = fasta.split('\n')
+  return lines?.[0]?.trim() || ''
+}
+
+const fastaDescription = (fasta: string) => {
+  const header = fastaHeader(fasta)
+  const id = fastaId(fasta)
+  return header && id ? header.substring(id.length) : ''
+}
+
+const fastaLine = (fasta: string) => {
+  return fasta
+    .split('\n')
+    .slice(1)
+    .map((line: string) => line.trim().toUpperCase())
+    .join('')
+}
+
+const fastaLength = (fasta: string) => {
+  return fastaLine(fasta).length
+}
+
+const loadSeq = (fasta: string) => {
+  seq.value =
+    '>PROTEIN_00001\n' +
+    fasta
+      .split('\n')
+      .slice(1)
+      .map((line: string) => line.trim().toUpperCase())
+      .join('\n')
+}
+
+const loadRecent = (fasta: string) => {
+  seq.value = fasta
+}
+
+defineExpose({
+  predict,
+  disableTutorial,
+  clearRecents,
+  loadSeq,
+  loadRecent,
+  fastaId,
+  fastaHeader,
+  fastaDescription,
+  fastaLine,
+  fastaLength,
+  errorMessages,
+})
 </script>
 
-<style lang="stylus">
+<style>
 .protein-field {
   font-family: monospace;
 }
 
-// height 200px
-// .q-layout-page > .row + .row
+.tooltip-with-arrow {
+  overflow-y: unset;
+  overflow-x: unset;
+}
+
+.tooltip-with-arrow::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 8px 8px 0;
+  border-style: solid;
+  border-color: #757575 transparent transparent transparent;
+}
+
 #predict {
   margin-top: 1.5rem;
 }
@@ -567,12 +504,23 @@ LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN `
   margin-right: 5px;
 }
 
+#example-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: gray;
+  animation: flash 5s infinite ease-in-out;
+  opacity: 0;
+  border-radius: inherit;
+}
+
 #recents__header {
   padding: 0px;
 }
-</style>
 
-<style>
 .tooltip {
   display: block !important;
   z-index: 10000;
@@ -670,12 +618,34 @@ LQGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN `
 .tooltip[aria-hidden='true'] {
   visibility: hidden;
   opacity: 0;
-  transition: opacity 0.15s, visibility 0.15s;
+  transition:
+    opacity 0.15s,
+    visibility 0.15s;
 }
 
 .tooltip[aria-hidden='false'] {
   visibility: visible;
   opacity: 1;
   transition: opacity 0.15s;
+}
+
+@keyframes flash {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 </style>

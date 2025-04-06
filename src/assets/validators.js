@@ -1,4 +1,4 @@
-import { helpers } from 'vuelidate/lib/validators'
+import { helpers } from '@vuelidate/validators'
 
 // const apiErrors = (field) => helpers.withParams(
 //   { type: 'apiErrors', value: field },
@@ -13,7 +13,7 @@ import { helpers } from 'vuelidate/lib/validators'
 //   // logger.log(`apiErrors.vm = `, vm)
 //   return this ? !!this.errors[field] : this
 // }
-export function apiErrors (field) {
+export function apiErrors(field) {
   // logger.log(`apiErrors.this = `, this)
   return helpers.withParams({ type: 'apiErrors', field: field }, function (value, vm) {
     // logger.log(`apiErrors->this = `, this)
@@ -39,9 +39,9 @@ MSLVIPEKFQHILRVLNTNIDGRRKIAFAITAIKGVGRRYAHVVLRKADIDLTKRAGELT
 EDEVERVITIMQNPRQYKIPDWFLNRQKDVKDGKYSQVLANGLDNKLREDLERLKKIRAH
 RGLRHFWGLRVRGQHTKTTGRRGRTVGVSKKK
 */
-export function isProtein () {
+export function isProtein() {
   // logger.log(`apiErrors.this = `, this)
-  return helpers.withParams({ type: 'isProtein' }, function (value, vm) {
+  const validatorObj = helpers.withParams({ type: 'isProtein' }, function (value) {
     //       let value =`MSLVIPEKFQHILRVLNTNIDGRRKIAFAITAIKGVGRRYAHVVLRKADIDLTKRAGELT
     // EDEVERVITIMQNPRQYKIPDWFLNRQKDVKDGKYSQVLANGLDNKLREDLERLKKIRAH
     //  RGLRHFWGLRVRGQHTKTTGRRGRTVGVSKKK`
@@ -57,10 +57,12 @@ export function isProtein () {
     if (!this.seq || typeof this.seq !== 'string') {
       return true
     }
-    return value.split('\n').every(line => {
+    return value.split('\n').every((line) => {
       line = line.trim().toUpperCase()
       // console.log('isProtein', line)
       return !line || line[0] === '>' || proteinRe.test(line)
     })
   })
+  validatorObj.$message = 'Invalid protein sequence'
+  return validatorObj
 }

@@ -1,259 +1,103 @@
-# annotate-ui
+# ANNotate UI
+
+Protein Function Prediction using Recurrent Neural Networks
 
-Protein Annotation using Recurrent Neural Network Models
+## Overall Architecture
 
-Fast and accurate per aa annotation of protein sequences with TensorFlow Serving back end.
-Annotate proteins with sequence length up to 40k amino acids.
-Pfam, GO, HPO, DO annotations.
+The complete system consists of three main components:
 
-# Release workflow
+- **Frontend UI** (annotate-ui): A Single Page Application (SPA) built with Vue 3
+- **Backend API** (annotate-api): A Feathers.js NodeJS RESTful API service
+- **Deep Learning Model** (annotate-model): Tensorflow GPU-accelerated inference for protein function prediction models
 
-```bash
-npm run release # runs standard-version
-git describe # prints version
-git push --follow-tags origin master
-```
+## Frontend Architecture (annotate-ui)
 
-- standard-version does the following:
-  - bumps the version in metadata files (package.json, composer.json, etc).
-  - uses conventional-changelog to update CHANGELOG.md
-  - commits package.json (et al.) and CHANGELOG.md
-  - tags a new release
+The frontend is built as a Single Page Application (SPA) using the Quasar Framework (Vue 3), focusing on performance and responsive design. The application is structured following Vue's component architecture with the following key elements:
 
-# Committing code
+### Core Technologies
 
-## Practical tips
+- **Framework**: Quasar Framework v2.18+ (Vue 3.5+)
+- **Language**: TypeScript for type safety and improved developer experience
+- **State Management**: Pinia v3.0+ for reactive state management
+- **Real-time Communication**: Socket.io client for WebSocket connections to the Feathers backend
+- **HTTP Requests**: Axios for REST API calls
+- **Data Visualization**: Apache ECharts for rendering protein data visualizations
+- **CSS Framework**: TailwindCSS v4.0+ for utility-first styling approach
+- **Form Validation**: Vuelidate for form input validation
 
-### Commit message format
+### Application Structure
 
-`type(scopes): message`
+- **/src/pages/**: Main application views including:
+  - `IndexPage.vue`: Landing page with search functionality
+  - `PfamDetail.vue`: Detailed protein family information with predictions
+  - `DocumentationPage.vue`: Application documentation
+  - `AboutPage.vue`: Information about the project
+  - `ContactPage.vue`: Contact information
+- **/src/components/**: Reusable UI components such as:
+  - `SearchInput.vue`: Complex protein search component
+  - `EssentialLink.vue`: Navigation link component
+- **/src/layouts/**: Page layout containers
+  - `MainLayout.vue`: Primary application layout with navigation and content areas
+- **/src/stores/**: Pinia state management stores
+  - `pfamStore.ts`: Store for protein family data
+  - `referencesStore.ts`: Store for scientific reference data
+  - `localSettingsStore.js`: User preferences and local settings
+  - `systemStore.js`: Application system state
+- **/src/router/**: Vue Router configuration
+  - `routes.ts`: Route definitions mapping URLs to page components
+  - `index.ts`: Router configuration and initialization
+- **/src/boot/**: Application initialization files
+  - `feathers.ts`: Feathers client setup for backend communication
+  - `i18n.ts`: Internationalization configuration
+  - `pinia-colada.ts`: Pinia caching integration
+  - `logger.js`: Application logging setup
 
-Examples:
+### Data Flow Architecture
 
-- `fix(ui): fixed user login`
-- `chore(api): update libs`
-- `feat(api): added users service`
+1. **User Interface Layer**: Vue components in pages/ and components/ directories
+2. **State Management Layer**: Pinia stores in stores/ directory
+3. **API Communication Layer**: Feathers client configured in boot/ directory
+4. **Service Layer**: pfam service and references service accessible through the Feathers client
 
-### Command Line Tools: [commitizen](http://commitizen.github.io/cz-cli/)
+### Caching Strategy
 
-- Use `npx git-cz` to get an interactive list of types and scopes to choose from
+- Local API response caching using browser's localStorage
+- Pinia-plugin-persistedstate for preserving state between sessions
+- @pinia/colada for optimized API request caching
 
-### VSCode Tools: [vscode-commitizen](https://marketplace.visualstudio.com/items?itemName=KnisterPeter.vscode-commitizen)
+### Build & Development Tools
 
-- Open the command panel (F1) and type 'conventional commit'.
-- Select the command and answer the questions afterwards (type, scope, subject, body, breaking changes, closed issues).
+- Vite-based build system through Quasar CLI
+- TypeScript for static type checking
+- ESLint for code quality
+- Prettier for code formatting
+- PostCSS with Autoprefixer for CSS compatibility
 
-## List of types
+This architecture provides a maintainable, scalable frontend that efficiently communicates with the backend services while providing a responsive and intuitive user interface for protein function prediction analysis.
 
-```
-chore:    Other changes that don't modify src or test files
-feat:     A new feature
-fix:      A bug fix
-docs:     Documentation only changes
-WIP:      Work in progress
-style:    Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
-refactor: A code change that neither fixes a bug nor adds a feature
-build:    Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)
-ci:       Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)
-revert:   Reverts a previous commit
-perf:     A code change that improves performance
-test:     Adding missing tests or correcting existing tests
-```
+## Backend Architecture
 
-## Why
+The backend API is built with Feathers.js providing:
 
-- Used for automated version generation and changelog generation
-- [Conventional Commits](https://www.conventionalcommits.org)
-- [Conventional Changelog](https://github.com/conventional-changelog/conventional-changelog)
-  - [Development: How to adapt a custom conventional changelog](https://medium.com/vlad-arbatov/development-how-to-adapt-a-custom-conventional-changelog-33ff3b13c832)
+- RESTful API endpoints for data access
+- Real-time communication using Socket.io
+- Authentication and authorization services
+- Integration with the TensorFlow Serving API for model inference
 
-# Development
+## Model Serving Architecture
 
-## annotate-api
+The machine learning models are served using TensorFlow Serving:
 
-```bash
-cd annotate-api
-npm run dev
-```
+- Multiple GPU-accelerated model instances for high-throughput prediction
+- Model versioning and configuration management
+- RESTful API for model inference requests
+- Containerized using Docker for easy deployment and scaling
 
-starts feathers api on http://localhost:8581
+## Data Flow
 
-## annotate-ui
+1. Client makes requests to the Quasar UI
+2. UI communicates with the Feathers API for data processing
+3. For predictions, Feathers API communicates with TensorFlow Serving
+4. Prediction results are returned to the UI for visualization and analysis
 
-```bash
-cd annotate-ui
-npm run dev
-```
-
-starts quasar ui on http://localhost:8080
-
-```bash
-npm run build
-```
-
-# Ports used
-
-- 8501 - TF Serving API
-- 8583 - Quasar UI
-- 8581 - Feathers API
-
-# Setup server
-
-```bash
-npm i -g pm2
-npm i -g spa-http-server
-
-cd annotate-api
-NODE_ENV=production sudo pm2 start npm --name annotate-api -- run start
-
-cd ../annotate-ui
-NODE_ENV=production sudo pm2 start npm --name annotate-ui -- run start
-NODE_ENV=production sudo pm2 start /usr/bin/http-server --name annotate-ui -- ./dist/pwa-mat -c-1 -p 8583 -d false
-
-sudo pm2 save
-sudo pm2 startup
-```
-
-# tensorflow serving
-
-## start
-
-IP: 192.168.1.63
-
-```bash
-docker run --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=0 -p 8501:8501 --name serving_annotate --mount type=bind,source=/home/hotdogee/export,target=/models/pfam -e MODEL_NAME=pfam -t tensorflow/serving:latest-gpu
-```
-
-New
-
-```bash
-docker run --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=2 -p 8601:8501 --name serving_annotate2 --mount type=bind,source=/home/hotdogee/models,target=/models -t tensorflow/serving:latest-gpu --model_config_file=/models/models_config_ann.proto --file_system_poll_wait_seconds=60
-```
-
-```conf
-model_config_list {
-  config {
-    name: 'pfam'
-    base_path: '/models/ann/'
-    model_platform: 'tensorflow'
-  }
-}
-# Contains model:
-#   BEST p32	m1	1568346315	FullGru512x4_hw512_TITANV_W2125-2.4	epoch-4-4421273
-```
-
-## stop
-
-```bash
-docker stop serving_annotate
-```
-
-# nginx routes
-
-| location | proxy_pass                   |
-| -------- | ---------------------------- |
-| /        | http://127.0.0.1:8583        |
-| /api/    | http://127.0.0.1:8581/       |
-| /v100/   | http://192.168.1.63:8501/v1/ |
-| /v101/   | http://192.168.1.63:8601/v1/ |
-
-# nginx conf
-
-```
-server {
-    listen      80;
-    listen      [::]:80;
-    listen      443 ssl http2;
-    listen      [::]:443 ssl http2;
-
-    server_name ann.hanl.in;
-    client_max_body_size 0;
-
-    ssl_certificate /etc/nginx/ssl/hanl.in/hanl.in.crt;
-    ssl_certificate_key /etc/nginx/ssl/hanl.in/hanl.in.key;
-    ssl_trusted_certificate /etc/nginx/ssl/hanl.in/ggssl_trusted.crt;
-
-    # Strict Transport Security
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-
-    location /api {
-        return 302 /api/;
-    }
-
-    location /api/ {
-        proxy_pass http://127.0.0.1:8581/;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-    }
-
-    location /v101 {
-        return 302 /v101/;
-    }
-
-    location /v101/ {
-        proxy_pass http://192.168.1.63:8601/v1/;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-    }
-
-    location /v100 {
-        return 302 /v100/;
-    }
-
-    location /v100/ {
-        proxy_pass http://192.168.1.63:8501/v1/;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-    }
-
-    location / {
-        proxy_pass http://127.0.0.1:8583;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-    }
-}
-
-server {
-    listen      80;
-    listen      [::]:80;
-    listen      443 ssl http2;
-    listen      [::]:443 ssl http2;
-
-    server_name annotate.hanl.in;
-    client_max_body_size 0;
-
-    ssl_certificate /etc/nginx/ssl/hanl.in/hanl.in.crt;
-    ssl_certificate_key /etc/nginx/ssl/hanl.in/hanl.in.key;
-    ssl_trusted_certificate /etc/nginx/ssl/hanl.in/ggssl_trusted.crt;
-
-    location / {
-        proxy_pass http://127.0.0.1:8583;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-
-```
+This architecture provides scalability, performance, and maintainability for the protein function prediction system.
