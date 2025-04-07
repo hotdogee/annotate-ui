@@ -10,8 +10,6 @@ Protein Function Prediction using Deep Learning
 - Backend deployed on Google Compute Engine.
 - Deep Learning Model deployed on Google Cloud Run.
 
-![ANNotate UI](https://github.com/user-attachments/assets/81dc7266-e6b7-47d9-b1e9-97a8cb1f7144)
-
 ## Prediction Results
 
 ![Prediction Results](https://github.com/user-attachments/assets/03f5a5c0-7ced-42af-b42e-ff41d6a56331)
