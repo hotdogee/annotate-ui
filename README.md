@@ -2,6 +2,8 @@
 
 Protein Function Prediction using Deep Learning
 
+![ezgif-7f33ff88cd7391](https://github.com/user-attachments/assets/99e2027f-dcee-45d5-a356-13ed9978cc20)
+
 # Live
 
 - Frontend deployed on GitHub Pages: https://ann.hanl.in/
