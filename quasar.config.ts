@@ -12,7 +12,15 @@ export default defineConfig((ctx) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['logger', 'i18n', 'axios', 'feathers', 'pinia-colada', 'router-transitions'],
+    boot: [
+      'logger',
+      'i18n',
+      'axios',
+      'feathers',
+      'pinia-colada',
+      'router-transitions',
+      'analytics',
+    ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: ['app.scss'],
@@ -59,6 +67,7 @@ export default defineConfig((ctx) => {
       env: {
         API_URL: ctx.dev ? 'http://localhost:3030' : 'https://api-ann.hanl.in:8582',
         API_PATH: ctx.dev ? '' : '',
+        GA_MEASUREMENT_ID: ctx.dev ? '' : 'G-ZE9N6D5EG4',
       },
       // rawDefine: {}
       // ignorePublicFolder: true,
