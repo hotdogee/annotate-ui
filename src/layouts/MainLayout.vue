@@ -8,12 +8,14 @@
               <q-avatar size="48px"><img src="/favicon-96x96.png" /></q-avatar>
             </q-btn>
             <q-toolbar-title class="title">
-              <div class="brand-section">
-                <q-item-label class="text-h5 brand-name">ANNotate</q-item-label>
-                <q-item-label class="text-subtitle2 brand-subtitle" lines="1">
-                  Protein Annotation using Deep Learning
-                </q-item-label>
-              </div>
+              <router-link :to="{ name: 'index' }">
+                <div class="brand-section">
+                  <q-item-label class="text-h5 brand-name">ANNotate</q-item-label>
+                  <q-item-label class="text-subtitle2 brand-subtitle" lines="1">
+                    Protein Annotation using Deep Learning
+                  </q-item-label>
+                </div>
+              </router-link>
             </q-toolbar-title>
           </div>
         </Transition>
