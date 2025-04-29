@@ -414,7 +414,7 @@ Let’s build something groundbreaking together! 🚀
                 <div
                   class="inline-flex items-center justify-center rounded-lg text-base font-medium"
                 >
-                  <SendHorizonal class="mr-3" />
+                  <SendHorizontal class="mr-3" />
                   Send Message
                 </div>
               </q-btn>
@@ -439,7 +439,7 @@ import {
   Mail,
   MessageSquareText,
   School,
-  SendHorizonal,
+  SendHorizontal,
 } from 'lucide-vue-next'
 import { reactive, ref } from 'vue'
 
@@ -470,7 +470,7 @@ const onSubmit = async () => {
     )
     // console.log(JSON.stringify(formState))
     // console.log(response)
-    // Handle seccess and error
+    // Handle success and error
     if (!response.ok) {
       throw new Error('Network response was not ok')
     }
