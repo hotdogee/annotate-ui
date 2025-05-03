@@ -6,7 +6,7 @@ Protein Function Prediction using Deep Learning
 
 # Live
 
-- Frontend deployed on GitHub Pages: https://ann.hanl.in/
+- Frontend deployed on Cloudflare Pages: https://ann.hanl.in/
 - Backend deployed on Google Compute Engine.
 - Deep Learning Model deployed on Google Cloud Run.
 
